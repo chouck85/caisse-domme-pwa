@@ -1,0 +1,1868 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Caisse Domme</title>
+
+<!-- PWA / installation sur écran d'accueil iPhone -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06060a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Caisse Domme">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN TOKENS — Thème clair (défaut)
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  --bg:       radial-gradient(circle at 85% 4%, rgba(255,163,110,.55) 0%, rgba(255,163,110,0) 42%),
+              radial-gradient(circle at 4% 92%, rgba(110,165,255,.48) 0%, rgba(110,165,255,0) 48%),
+              radial-gradient(circle at 48% 38%, rgba(185,130,255,.32) 0%, rgba(185,130,255,0) 55%),
+              radial-gradient(circle at 75% 72%, rgba(255,120,180,.24) 0%, rgba(255,120,180,0) 50%),
+              linear-gradient(160deg, #dde6fb 0%, #fde2cd 100%);
+  --surface:  #ffffff;
+  --surface2: #e8e8ea;
+  --border:   rgba(0,0,0,0.08);
+  --border2:  rgba(0,0,0,0.14);
+  --text:     #101012;
+  --text2:    #58585d;
+  --text3:    #9a9aa0;
+  --green:    #00a878;
+  --red:      #d63050;
+  --accent:   #3a3a3d;
+  --accent-bg:rgba(0,0,0,0.06);
+  --on-accent:#ffffff;
+  --radius:   12px;
+  --radius-sm:8px;
+  --surf-top: #ffffff;
+  --surf-bot: #eaebee;
+  --surf2-top:#f4f4f6;
+  --surf2-bot:#e2e3e7;
+  --sheen:    rgba(255,255,255,.65);
+  --sheen-op: .55;
+  --glass-blur: none;
+  --card-shadow: 0 1px 2px rgba(20,20,25,.05), inset 0 1px 0 rgba(255,255,255,.9);
+  --sidebar-bg:   linear-gradient(180deg, rgba(255,255,255,.60) 0%, rgba(255,255,255,.32) 100%);
+  --sidebar-blur: blur(18px);
+}
+
+:root[data-theme="dark"] {
+  --bg:       radial-gradient(circle at 18% 12%, rgba(143,155,255,.20) 0%, rgba(143,155,255,0) 40%),
+              radial-gradient(circle at 85% 20%, rgba(62,224,168,.12) 0%, rgba(62,224,168,0) 42%),
+              radial-gradient(circle at 65% 78%, rgba(255,120,190,.10) 0%, rgba(255,120,190,0) 45%),
+              radial-gradient(circle at 30% 92%, rgba(120,90,255,.14) 0%, rgba(120,90,255,0) 50%),
+              linear-gradient(160deg, #14141f 0%, #06060a 100%);
+  --surface:  rgba(255,255,255,.05);
+  --surface2: rgba(255,255,255,.07);
+  --border:   rgba(255,255,255,0.10);
+  --border2:  rgba(255,255,255,0.16);
+  --text:     #f4f4f6;
+  --text2:    #b8b8c4;
+  --text3:    #7c7c8a;
+  --green:    #3ee0a8;
+  --red:      #ff5066;
+  --accent:   #8f9bff;
+  --accent-bg:rgba(143,155,255,0.16);
+  --on-accent:#0b0b16;
+  --surf-top: rgba(255,255,255,.09);
+  --surf-bot: rgba(255,255,255,.025);
+  --surf2-top:rgba(255,255,255,.11);
+  --surf2-bot:rgba(255,255,255,.04);
+  --sheen:    rgba(255,255,255,.18);
+  --sheen-op: 1;
+  --glass-blur: blur(20px);
+  --card-shadow: 0 8px 32px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.15);
+  --sidebar-bg:   linear-gradient(180deg, rgba(255,255,255,.07) 0%, rgba(255,255,255,.02) 100%);
+  --sidebar-blur: blur(22px);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:       radial-gradient(circle at 18% 12%, rgba(143,155,255,.20) 0%, rgba(143,155,255,0) 40%),
+                radial-gradient(circle at 85% 20%, rgba(62,224,168,.12) 0%, rgba(62,224,168,0) 42%),
+                radial-gradient(circle at 65% 78%, rgba(255,120,190,.10) 0%, rgba(255,120,190,0) 45%),
+                radial-gradient(circle at 30% 92%, rgba(120,90,255,.14) 0%, rgba(120,90,255,0) 50%),
+                linear-gradient(160deg, #14141f 0%, #06060a 100%);
+    --surface:  rgba(255,255,255,.05);
+    --surface2: rgba(255,255,255,.07);
+    --border:   rgba(255,255,255,0.10);
+    --border2:  rgba(255,255,255,0.16);
+    --text:     #f4f4f6;
+    --text2:    #b8b8c4;
+    --text3:    #7c7c8a;
+    --green:    #3ee0a8;
+    --red:      #ff5066;
+    --accent:   #8f9bff;
+    --accent-bg:rgba(143,155,255,0.16);
+    --on-accent:#0b0b16;
+    --surf-top: rgba(255,255,255,.09);
+    --surf-bot: rgba(255,255,255,.025);
+    --surf2-top:rgba(255,255,255,.11);
+    --surf2-bot:rgba(255,255,255,.04);
+    --sheen:    rgba(255,255,255,.18);
+    --sheen-op: 1;
+    --glass-blur: blur(20px);
+    --card-shadow: 0 8px 32px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.15);
+    --sidebar-bg:   linear-gradient(180deg, rgba(255,255,255,.07) 0%, rgba(255,255,255,.02) 100%);
+    --sidebar-blur: blur(22px);
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%;
+  background: var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.layout { position: relative; z-index: 1; display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; transition: grid-template-columns .22s ease; }
+.layout.sb-collapsed { grid-template-columns: 52px 1fr; }
+
+.bg-blob {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity .4s;
+  will-change: transform;
+}
+:root[data-theme="dark"] .bg-blob { opacity: 1; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .bg-blob { opacity: 1; }
+}
+.bg-blob-1 {
+  width: 520px; height: 520px; top: -140px; left: -120px;
+  background: radial-gradient(circle, rgba(143,155,255,.4) 0%, rgba(143,155,255,0) 70%);
+  animation: floatBlob1 24s ease-in-out infinite;
+}
+.bg-blob-2 {
+  width: 560px; height: 560px; bottom: -180px; right: -140px;
+  background: radial-gradient(circle, rgba(62,224,168,.32) 0%, rgba(62,224,168,0) 70%);
+  animation: floatBlob2 28s ease-in-out infinite;
+}
+@keyframes floatBlob1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(70px, 50px) scale(1.15); }
+}
+@keyframes floatBlob2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(-60px, -40px) scale(1.1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bg-blob { animation: none; }
+}
+
+#starfield {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+
+.sidebar {
+  background: var(--sidebar-bg);
+  backdrop-filter: var(--sidebar-blur);
+  -webkit-backdrop-filter: var(--sidebar-blur);
+  border-right: 1px solid var(--border);
+  padding: 2rem 1.25rem;
+  display: flex; flex-direction: column; gap: 2rem;
+  position: sticky; top: 0; height: 100vh;
+  overflow-y: auto; overflow-x: hidden;
+  transition: padding .22s;
+}
+.sb-collapsed .sidebar        { padding: 12px 6px; gap: 1.2rem; }
+.sb-collapsed .logo-wrap      { display: none; }
+.sb-collapsed .sidebar-footer { display: none; }
+.sb-collapsed .nav-item       { justify-content: center; padding: 10px 6px; }
+.sb-collapsed .nav-label      { display: none; }
+
+.logo { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; display: flex; align-items: center; gap: 7px; }
+.logo span { color: var(--accent); }
+.logo img  { width: 22px; height: 22px; border-radius: 5px; object-fit: cover; flex-shrink: 0; }
+
+#sb-toggle {
+  -webkit-appearance: none; appearance: none;
+  background: none; border: none; outline: none; box-shadow: none;
+  cursor: pointer; color: var(--text3); font-size: 14px;
+  padding: 4px 6px; border-radius: 6px;
+  transition: color .15s, transform .22s;
+  line-height: 1; flex-shrink: 0;
+}
+#sb-toggle:hover { color: var(--text); background: var(--surface2); }
+.sb-collapsed #sb-toggle { transform: rotate(180deg); }
+
+.nav { display: flex; flex-direction: column; gap: 2px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 500; color: var(--text2);
+  cursor: pointer; border: none; background: none;
+  width: 100%; text-align: left;
+  transition: background .15s, color .15s;
+  font-family: 'DM Sans', sans-serif;
+}
+.nav-item:hover  { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: var(--accent-bg); color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+
+.sidebar-footer { font-size: 11px; color: var(--text3); margin-top: auto; }
+
+.main { min-width: 0; overflow-x: hidden; }
+.page { display: none; padding: 2rem; }
+.page.active { display: block; }
+
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+.page-title { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
+.page-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+.card, .chart-card, .metric-card, .table-card, .form-card {
+  position: relative;
+  background: linear-gradient(155deg, var(--surf-top) 0%, var(--surf-bot) 100%);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  isolation: isolate;
+}
+.card::before, .chart-card::before, .metric-card::before, .table-card::before, .form-card::before {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(125deg, var(--sheen) 0%, rgba(255,255,255,0) 38%);
+  opacity: var(--sheen-op);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.card { padding: 1.25rem; margin-bottom: 1.5rem; }
+.chart-card { padding: 1.25rem; }
+.chart-card-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--text3); }
+
+.metrics-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.metric-card { padding: 1rem 1.25rem; flex: 1; min-width: 150px; }
+.metric-label { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 4px; }
+.metric-value { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
+.metric-value.green { color: var(--green); }
+.metric-value.red   { color: var(--red); }
+.metric-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+.table-card { overflow: hidden; margin-bottom: 1.5rem; }
+table { width: 100%; border-collapse: collapse; }
+th { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .4px; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, var(--surf2-top), var(--surf2-bot)); }
+th.sortable { user-select: none; transition: color .15s; }
+th.sortable:hover { color: var(--accent); }
+.sort-arrow { color: var(--accent); font-size: 9px; margin-left: 2px; }
+td { padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+.empty-row { text-align: center; color: var(--text3); padding: 3rem 1rem; font-size: 13px; }
+
+.form-card { padding: 1.5rem; margin-bottom: 1.5rem; }
+.form-grid  { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label { font-size: 12px; font-weight: 500; color: var(--text2); }
+input, select, textarea {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+  width: 100%;
+  transition: border-color .15s;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; border: none; outline: none;
+  font-family: 'DM Sans', sans-serif;
+  transition: opacity .15s, transform .1s;
+}
+.btn:hover  { opacity: .85; }
+.btn:active { transform: scale(.98); }
+.btn-primary { background: var(--accent); color: var(--on-accent); }
+.btn-secondary { background: linear-gradient(160deg, var(--surf2-top), var(--surf2-bot)); color: var(--text2); border: 1px solid var(--border2); }
+.btn-danger { background: rgba(214,48,80,.12); color: var(--red); border: 1px solid rgba(214,48,80,.2); }
+.btn-success { background: rgba(0,168,120,.12); color: var(--green); border: 1px solid rgba(0,168,120,.2); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+.badge { display: inline-block; font-size: 10px; font-weight: 700; border-radius: 4px; padding: 1px 6px; }
+.badge-green  { background: rgba(0,168,120,.12); color: var(--green); border: 1px solid rgba(0,168,120,.2); }
+.badge-red    { background: rgba(214,48,80,.12);  color: var(--red);   border: 1px solid rgba(214,48,80,.2); }
+.badge-accent { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--border2); }
+.badge-amber  { background: rgba(245,158,11,.12); color: #f59e0b; border: 1px solid rgba(245,158,11,.3); }
+
+#toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  background: linear-gradient(155deg, var(--surf-top), var(--surf-bot)); border: 1px solid var(--border2);
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: 10px; padding: 10px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text);
+  box-shadow: 0 8px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.06);
+  opacity: 0; transform: translateY(10px);
+  transition: opacity .25s, transform .25s;
+  pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+
+[data-privacy="on"] .private { filter: blur(5px); user-select: none; }
+
+.settings-section { margin-bottom: 2rem; }
+.settings-title { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.settings-row:last-child { border-bottom: none; }
+
+canvas { display: block; }
+
+.insight-card {
+  background: linear-gradient(135deg, var(--accent-bg), transparent 60%), linear-gradient(155deg, var(--surf-top), var(--surf-bot));
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--card-shadow);
+}
+.insight-title { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.insight-text { font-size: 14px; color: var(--text); line-height: 1.6; }
+
+.tabs { display: flex; gap: 4px; margin-bottom: 1.25rem; background: linear-gradient(180deg, var(--surf2-top), var(--surf2-bot)); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 3px; width: fit-content; }
+.tab-btn {
+  border: none; background: none; cursor: pointer;
+  padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500;
+  color: var(--text2); font-family: 'DM Sans', sans-serif;
+  transition: background .15s, color .15s;
+}
+.tab-btn.active { background: linear-gradient(155deg, var(--surf-top), var(--surf-bot)); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+.btn-toggle-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn-toggle {
+  border: 1px solid var(--border2); background: var(--surface2); cursor: pointer;
+  padding: 7px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 500;
+  color: var(--text2); font-family: 'DM Sans', sans-serif;
+  transition: background .15s, color .15s, border-color .15s, transform .1s;
+  white-space: nowrap;
+}
+.btn-toggle:hover { color: var(--text); border-color: var(--accent); }
+.btn-toggle:active { transform: scale(.96); }
+.btn-toggle.active {
+  background: var(--accent-bg); color: var(--accent); border-color: var(--accent);
+  font-weight: 600;
+}
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+@media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+</style>
+</head>
+<body>
+
+<!-- ───────────────────────────────────────────────────────────────
+     CHARGEMENT INITIAL SYNCHRONE
+     ─────────────────────────────────────────────────────────────── -->
+<script>
+// ── Données ─────────────────────────────────────────────────────────────────
+// entries: [{ id, date:'YYYY-MM-DD', cb, espece, horsCaisse, note }]  — une entrée par jour
+let appData = {
+  entries: [],
+};
+
+let settings = {
+  theme:       'auto',   // 'auto' | 'light' | 'dark'
+  privacyMode: false,
+};
+
+(function loadLocalData() {
+  try {
+    const raw = localStorage.getItem('caisse_domme_data');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.entries) appData.entries = parsed.entries;
+    }
+  } catch(e) { console.warn('Erreur chargement local:', e); }
+
+  try {
+    const s = localStorage.getItem('caisse_domme_settings');
+    if (s) settings = { ...settings, ...JSON.parse(s) };
+  } catch(e) {}
+})();
+</script>
+
+<canvas id="starfield"></canvas>
+<div class="bg-blob bg-blob-1"></div>
+<div class="bg-blob bg-blob-2"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     STRUCTURE LAYOUT
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="layout" id="layout">
+
+  <!-- ── SIDEBAR ──────────────────────────────────────────────── -->
+  <aside class="sidebar">
+
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+      <div class="logo-wrap">
+        <div class="logo">
+          <img src="icon_new.png" alt="" onerror="this.style.display='none'"/>
+          <b style="font-weight:600">Caisse <span>Domme</span></b>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px">Rapport de caisse</div>
+      </div>
+      <button id="sb-toggle" onclick="toggleSidebar()" title="Masquer le menu">◀</button>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active" onclick="switchPage('dashboard')">
+        <span>📊</span><span class="nav-label"> Dashboard</span>
+      </button>
+      <button class="nav-item" onclick="switchPage('caisse')">
+        <span>🧾</span><span class="nav-label"> Caisse jour</span>
+      </button>
+      <button class="nav-item" onclick="switchPage('n1')">
+        <span>📆</span><span class="nav-label"> Comparatif N-1</span>
+      </button>
+      <button class="nav-item" onclick="switchPage('analyse')">
+        <span>🤖</span><span class="nav-label"> Analyse</span>
+      </button>
+      <button class="nav-item" onclick="switchPage('moyennes')">
+        <span>📈</span><span class="nav-label"> Performance</span>
+      </button>
+      <button class="nav-item" onclick="switchPage('parametres')">
+        <span>⚙️</span><span class="nav-label"> Paramètres</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button onclick="toggleTheme()" id="theme-btn"
+        style="background:none;border:1px solid var(--border2);border-radius:6px;
+               padding:4px 10px;font-size:11px;color:var(--text2);cursor:pointer;
+               font-family:'DM Sans',sans-serif;margin-bottom:8px;width:100%">
+        ☀ Thème clair
+      </button>
+      <button onclick="manualRefresh()" id="refresh-btn"
+        style="background:none;border:1px solid var(--border2);border-radius:6px;
+               padding:4px 10px;font-size:11px;color:var(--text2);cursor:pointer;
+               font-family:'DM Sans',sans-serif;margin-bottom:8px;width:100%">
+        ⟳ Actualiser
+      </button>
+      <span id="sync-status" style="color:var(--green)">—</span>
+    </div>
+
+  </aside>
+
+  <!-- ── ZONE PRINCIPALE ──────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- ══════════════════════════════════════════════════════════
+         PAGE CAISSE JOUR
+         ══════════════════════════════════════════════════════════ -->
+    <div id="page-caisse" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Caisse jour</div>
+          <div class="page-sub" id="last-update">—</div>
+        </div>
+      </div>
+
+      <!-- Métriques du mois en cours -->
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="metric-label">Recette du mois</div>
+          <div class="metric-value green private" id="cj-metric-month">0 €</div>
+          <div class="metric-sub" id="cj-metric-month-sub">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Moyenne / jour</div>
+          <div class="metric-value private" id="cj-metric-avg">0 €</div>
+          <div class="metric-sub">sur le mois en cours</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Jours saisis</div>
+          <div class="metric-value" id="cj-metric-count">0</div>
+          <div class="metric-sub">au total</div>
+        </div>
+      </div>
+
+      <!-- Formulaire de saisie -->
+      <div class="form-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+          <div style="font-weight:600;font-size:14px" id="cj-form-title">Nouvelle saisie</div>
+          <div style="font-size:12px;color:var(--text3)" id="cj-form-jour">—</div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="cj-date" onchange="updateFormJour()"/>
+          </div>
+          <div class="form-group">
+            <label>CB (€)</label>
+            <input type="number" id="cj-cb" step="0.01" min="0" placeholder="0.00"/>
+          </div>
+          <div class="form-group">
+            <label>Espèce (€)</label>
+            <input type="number" id="cj-espece" step="0.01" min="0" placeholder="0.00"/>
+          </div>
+          <div class="form-group">
+            <label>Hors caisse (€)</label>
+            <input type="number" id="cj-hors" step="0.01" min="0" placeholder="0.00"/>
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1">
+            <label>Météo</label>
+            <div class="btn-toggle-group" id="cj-meteo-group" data-value="aucun">
+              <button type="button" class="btn-toggle" data-val="pluie" onclick="selectToggleOption('cj-meteo-group','pluie')">🌧️ Pluie</button>
+              <button type="button" class="btn-toggle" data-val="soleil" onclick="selectToggleOption('cj-meteo-group','soleil')">☀️ Soleil</button>
+              <button type="button" class="btn-toggle" data-val="chaleur" onclick="selectToggleOption('cj-meteo-group','chaleur')">🔥 Chaleur</button>
+              <button type="button" class="btn-toggle" data-val="nuageux" onclick="selectToggleOption('cj-meteo-group','nuageux')">☁️ Nuageux</button>
+              <button type="button" class="btn-toggle" data-val="doux" onclick="selectToggleOption('cj-meteo-group','doux')">🌤️ Doux</button>
+              <button type="button" class="btn-toggle active" data-val="aucun" onclick="selectToggleOption('cj-meteo-group','aucun')">— Aucun</button>
+            </div>
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1">
+            <label>Événement</label>
+            <div class="btn-toggle-group" id="cj-evenement-group" data-value="aucun">
+              <button type="button" class="btn-toggle" data-val="ferie" onclick="selectToggleOption('cj-evenement-group','ferie')">🎌 Jour férié</button>
+              <button type="button" class="btn-toggle" data-val="marche" onclick="selectToggleOption('cj-evenement-group','marche')">🛍️ Marché</button>
+              <button type="button" class="btn-toggle" data-val="autre" onclick="selectToggleOption('cj-evenement-group','autre')">✨ Autre</button>
+              <button type="button" class="btn-toggle active" data-val="aucun" onclick="selectToggleOption('cj-evenement-group','aucun')">— Aucun</button>
+            </div>
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1">
+            <label>Note (période, saison, événement...)</label>
+            <input type="text" id="cj-note" placeholder="Ex: soirée événement, jour férié..."/>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:1.25rem">
+          <button class="btn btn-primary" onclick="saveEntry()">💾 Enregistrer</button>
+          <button class="btn btn-secondary" id="cj-cancel-btn" onclick="resetForm()" style="display:none">Annuler la modification</button>
+        </div>
+      </div>
+
+      <!-- Tableau des saisies -->
+      <div class="table-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px">
+          <input type="text" id="caisse-search" placeholder="🔎 Rechercher par date ou note…" oninput="renderCaisse()"
+            style="flex:1;max-width:320px;padding:8px 12px;border-radius:8px;border:1px solid var(--border2);
+                   background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px"/>
+          <span id="caisse-result-count" style="font-size:12px;color:var(--text3);white-space:nowrap">—</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th class="sortable" onclick="sortCaisseTable('date')" style="cursor:pointer">Date <span class="sort-arrow" data-key="date"></span></th>
+              <th>Jour</th>
+              <th class="sortable" onclick="sortCaisseTable('cb')" style="text-align:right;cursor:pointer">CB <span class="sort-arrow" data-key="cb"></span></th>
+              <th class="sortable" onclick="sortCaisseTable('espece')" style="text-align:right;cursor:pointer">Espèce <span class="sort-arrow" data-key="espece"></span></th>
+              <th class="sortable" onclick="sortCaisseTable('horsCaisse')" style="text-align:right;cursor:pointer">Hors caisse <span class="sort-arrow" data-key="horsCaisse"></span></th>
+              <th class="sortable" onclick="sortCaisseTable('total')" style="text-align:right;cursor:pointer">Total <span class="sort-arrow" data-key="total"></span></th>
+              <th>Note</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="caisse-table-body">
+            <tr><td colspan="8" class="empty-row">Aucune saisie</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         PAGE DASHBOARD
+         ══════════════════════════════════════════════════════════ -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <div class="page-title">Dashboard</div>
+        <button type="button" class="btn btn-secondary" id="btn-dashboard-privacy" onclick="togglePrivacy()" style="display:flex;align-items:center;gap:6px">
+          <span id="dashboard-privacy-icon">🙈</span>
+          <span id="dashboard-privacy-label">Flouter les montants</span>
+        </button>
+      </div>
+
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="metric-label">Recette du jour</div>
+          <div class="metric-value green private" id="db-jour">0 €</div>
+          <div class="metric-sub" id="db-jour-sub">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Recette de la semaine</div>
+          <div class="metric-value private" id="db-semaine">0 €</div>
+          <div class="metric-sub" id="db-semaine-sub">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Recette du mois</div>
+          <div class="metric-value private" id="db-mois">0 €</div>
+          <div class="metric-sub" id="db-mois-sub">—</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="chart-card">
+          <div class="chart-card-title">Évolution (30 derniers jours)</div>
+          <div style="height:260px;margin-top:1rem">
+            <canvas id="chart-evolution"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title">Répartition par mode d'encaissement (mois)</div>
+          <div style="height:260px;margin-top:1rem">
+            <canvas id="chart-repartition"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:1.5rem" class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Mode</th>
+              <th style="text-align:right">Jour</th>
+              <th style="text-align:right">Semaine</th>
+              <th style="text-align:right">Mois</th>
+            </tr>
+          </thead>
+          <tbody id="db-breakdown-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         PAGE COMPARATIF N-1
+         ══════════════════════════════════════════════════════════ -->
+    <div id="page-n1" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Comparatif N-1</div>
+          <div class="page-sub">Chaque jour saisi est comparé à la même date de l'année précédente</div>
+        </div>
+      </div>
+
+      <div id="n1-empty" class="card" style="display:none">
+        <p style="color:var(--text2)">Pas encore assez d'historique pour comparer avec l'année précédente. Continue à saisir tes journées — la comparaison s'activera automatiquement dès qu'une date aura son équivalent N-1 (dans un an, ou au fur et à mesure des saisies rétroactives).</p>
+      </div>
+
+      <div id="n1-content" style="display:none">
+        <div class="metrics-row">
+          <div class="metric-card">
+            <div class="metric-label">Écart moyen vs N-1</div>
+            <div class="metric-value" id="n1-ecart-moyen">—</div>
+            <div class="metric-sub">sur les jours comparables</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Jours comparables</div>
+            <div class="metric-value" id="n1-count">0</div>
+            <div class="metric-sub">avec équivalent N-1</div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Jour</th>
+                <th style="text-align:right">Recette N</th>
+                <th style="text-align:right">Recette N-1</th>
+                <th style="text-align:right">Écart</th>
+              </tr>
+            </thead>
+            <tbody id="n1-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         PAGE ANALYSE (AGENT)
+         ══════════════════════════════════════════════════════════ -->
+    <div id="page-analyse" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Analyse</div>
+          <div class="page-sub">Détection automatique des meilleures conditions à partir de tes données saisies</div>
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="refreshAnalyse()" style="display:flex;align-items:center;gap:6px">
+          <span>🔄</span><span>Actualiser l'analyse</span>
+        </button>
+      </div>
+
+      <div id="analyse-empty" class="card" style="display:none">
+        <p style="color:var(--text2)">Pas encore assez de données pour dégager des tendances. Saisis quelques journées dans l'onglet "Caisse jour" pour activer l'analyse.</p>
+      </div>
+
+      <div id="analyse-content" style="display:none">
+        <div class="insight-card">
+          <div class="insight-title">Constat</div>
+          <div class="insight-text" id="insight-text">—</div>
+        </div>
+
+        <div class="grid-2">
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr><th>Jour de semaine</th><th style="text-align:right">Recette moy.</th><th style="text-align:right">Nb jours</th></tr>
+              </thead>
+              <tbody id="analyse-jours-body"></tbody>
+            </table>
+          </div>
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr><th>Top 5 meilleures journées</th><th style="text-align:right">Total</th></tr>
+              </thead>
+              <tbody id="analyse-top-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         PAGE PERFORMANCE
+         ══════════════════════════════════════════════════════════ -->
+    <div id="page-moyennes" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Performance</div>
+          <div class="page-sub">Totaux par mode d'encaissement et performance mois par mois</div>
+        </div>
+      </div>
+
+      <div id="moyennes-empty" class="card" style="display:none">
+        <p style="color:var(--text2)">Pas encore de données. Saisis quelques journées dans l'onglet "Caisse jour" pour activer ce suivi.</p>
+      </div>
+
+      <div id="moyennes-content" style="display:none">
+        <div class="metrics-row">
+          <div class="metric-card">
+            <div class="metric-label">Total CB</div>
+            <div class="metric-value private" id="moy-cb">0 €</div>
+            <div class="metric-sub" id="moy-cb-sub">—</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Total Espèce</div>
+            <div class="metric-value private" id="moy-espece">0 €</div>
+            <div class="metric-sub" id="moy-espece-sub">—</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Total Hors caisse</div>
+            <div class="metric-value private" id="moy-hc">0 €</div>
+            <div class="metric-sub" id="moy-hc-sub">—</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Total général</div>
+            <div class="metric-value green private" id="moy-global">0 €</div>
+            <div class="metric-sub" id="moy-global-sub">—</div>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchMoyTab('mois')">Mois</button>
+          <button class="tab-btn" onclick="switchMoyTab('modes')">Modes de paiement</button>
+          <button class="tab-btn" onclick="switchMoyTab('jours')">Jours de semaine</button>
+          <button class="tab-btn" onclick="switchMoyTab('semaines')">Semaines</button>
+        </div>
+
+        <div id="moy-tab-mois" class="moy-tab">
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr><th>Mois</th><th style="text-align:right">Total</th><th style="text-align:right">CB</th><th style="text-align:right">Espèce</th><th style="text-align:right">Hors caisse</th><th style="text-align:right">Moyenne / jour</th><th style="text-align:right">Nb jours saisis</th><th style="text-align:right">Écart vs mois préc.</th></tr>
+              </thead>
+              <tbody id="moy-mois-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="moy-tab-modes" class="moy-tab" style="display:none">
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr><th>Mode</th><th style="text-align:right">Moyenne / jour</th><th style="text-align:right">Total</th><th style="text-align:right">Part</th></tr>
+              </thead>
+              <tbody id="moy-modes-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="moy-tab-jours" class="moy-tab" style="display:none">
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr><th>Jour</th><th style="text-align:right">CB moy.</th><th style="text-align:right">Espèce moy.</th><th style="text-align:right">Hors caisse moy.</th><th style="text-align:right">Total moy.</th><th style="text-align:right">Nb jours</th></tr>
+              </thead>
+              <tbody id="moy-jours-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="moy-tab-semaines" class="moy-tab" style="display:none">
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr><th>Semaine</th><th style="text-align:right">Total</th><th style="text-align:right">Moyenne / jour</th><th style="text-align:right">Nb jours saisis</th><th style="text-align:right">Écart vs sem. préc.</th></tr>
+              </thead>
+              <tbody id="moy-semaines-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         PAGE PARAMÈTRES
+         ══════════════════════════════════════════════════════════ -->
+    <div id="page-parametres" class="page">
+      <div class="page-header">
+        <div class="page-title">Paramètres</div>
+      </div>
+
+      <div class="card">
+        <div class="settings-section">
+          <div class="settings-title">Affichage</div>
+          <div class="settings-row">
+            <span>Thème</span>
+            <select id="set-theme" onchange="applyTheme(this.value)" style="width:auto;padding:4px 8px">
+              <option value="auto">Automatique (OS)</option>
+              <option value="light">Clair</option>
+              <option value="dark">Sombre</option>
+            </select>
+          </div>
+          <div class="settings-row">
+            <span>Mode vie privée (flouter les montants)</span>
+            <input type="checkbox" id="set-privacy" onchange="togglePrivacy()" style="width:16px;height:16px;cursor:pointer"/>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-title">Données</div>
+          <div class="settings-row">
+            <span>Synchronisation iCloud</span>
+            <span id="sync-info" style="color:var(--text3);font-size:12px">—</span>
+          </div>
+          <div class="settings-row">
+            <span>Réinitialiser les données</span>
+            <button class="btn btn-danger" onclick="confirmReset()">🗑 Réinitialiser</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-title">Version</div>
+          <div class="settings-row">
+            <span>Caisse Domme</span>
+            <span style="color:var(--text3)">v1.0.0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+
+const JOURS_FR = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const JOURS_FR_SHORT = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+const MOIS_FR = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+
+function parseLocalDate(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+function jourSemaineName(dateStr) { return JOURS_FR[parseLocalDate(dateStr).getDay()]; }
+function formatDateFr(dateStr) {
+  const d = parseLocalDate(dateStr);
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
+function fmtEuro(n) { return (n || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'; }
+function computeTotal(e) { return (parseFloat(e.cb)||0) + (parseFloat(e.espece)||0) + (parseFloat(e.horsCaisse)||0); }
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function getSortedEntries() { return [...appData.entries].sort((a,b) => b.date.localeCompare(a.date)); }
+
+// Tri + recherche du tableau "Caisse jour"
+let caisseSortKey = 'date';
+let caisseSortDir = 'desc';
+function sortCaisseTable(key) {
+  if (caisseSortKey === key) {
+    caisseSortDir = caisseSortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    caisseSortKey = key;
+    caisseSortDir = key === 'date' ? 'desc' : 'desc';
+  }
+  renderCaisse();
+}
+function getFilteredSortedEntries() {
+  const q = (document.getElementById('caisse-search')?.value || '').trim().toLowerCase();
+  let entries = [...appData.entries];
+  if (q) {
+    entries = entries.filter(e =>
+      formatDateFr(e.date).toLowerCase().includes(q) ||
+      e.date.includes(q) ||
+      (e.note || '').toLowerCase().includes(q)
+    );
+  }
+  const dir = caisseSortDir === 'asc' ? 1 : -1;
+  entries.sort((a, b) => {
+    let av, bv;
+    if (caisseSortKey === 'total') { av = computeTotal(a); bv = computeTotal(b); }
+    else if (caisseSortKey === 'date') { av = a.date; bv = b.date; }
+    else { av = parseFloat(a[caisseSortKey]) || 0; bv = parseFloat(b[caisseSortKey]) || 0; }
+    if (av < bv) return -1 * dir;
+    if (av > bv) return 1 * dir;
+    return 0;
+  });
+  return entries;
+}
+
+// ────────────────────────────────────────────────────────────────
+// NAVIGATION
+// ────────────────────────────────────────────────────────────────
+let currentPage = 'dashboard';
+
+function switchPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+
+  const pageEl = document.getElementById(`page-${name}`);
+  if (pageEl) pageEl.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b => {
+    if (b.getAttribute('onclick')?.includes(`'${name}'`)) b.classList.add('active');
+  });
+
+  currentPage = name;
+  onPageSwitch(name);
+}
+
+function onPageSwitch(name) {
+  if (name === 'caisse')     { renderCaisse(); }
+  if (name === 'dashboard')  { renderDashboard(); }
+  if (name === 'n1')         { renderN1(); }
+  if (name === 'analyse')    { renderAnalyse(); }
+  if (name === 'moyennes')   { renderMoyennes(); }
+}
+
+// ────────────────────────────────────────────────────────────────
+// SIDEBAR
+// ────────────────────────────────────────────────────────────────
+function toggleSidebar() {
+  const layout    = document.getElementById('layout');
+  const collapsed = layout.classList.toggle('sb-collapsed');
+  localStorage.setItem('caisse_domme_sidebar_collapsed', collapsed ? '1' : '0');
+  document.getElementById('sb-toggle').title = collapsed ? 'Afficher le menu' : 'Masquer le menu';
+}
+
+// ────────────────────────────────────────────────────────────────
+// THÈME
+// ────────────────────────────────────────────────────────────────
+function applyTheme(theme) {
+  settings.theme = theme;
+  if (theme === 'dark')  { document.documentElement.setAttribute('data-theme', 'dark'); }
+  else if (theme === 'light') { document.documentElement.setAttribute('data-theme', 'light'); }
+  else { document.documentElement.removeAttribute('data-theme'); }
+
+  const isDark = theme === 'dark' ||
+    (theme === 'auto' && window.matchMedia('(prefers-color-scheme:dark)').matches);
+  const btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = isDark ? '☀ Thème clair' : '🌙 Thème sombre';
+
+  const sel = document.getElementById('set-theme');
+  if (sel) sel.value = theme;
+
+  saveSettings();
+
+  if (currentPage === 'dashboard' && typeof renderDashboard === 'function') {
+    renderDashboard();
+  }
+
+  if (typeof regenerateStarfield === 'function') regenerateStarfield();
+}
+
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+    (!document.documentElement.getAttribute('data-theme') &&
+     window.matchMedia('(prefers-color-scheme:dark)').matches);
+  applyTheme(isDark ? 'light' : 'dark');
+}
+
+// ────────────────────────────────────────────────────────────────
+// THÈME ASTRAL — étoiles animées en fond (clair & sombre)
+// ────────────────────────────────────────────────────────────────
+(function starfieldModule() {
+  const canvas = document.getElementById('starfield');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+  let dpr = Math.max(1, window.devicePixelRatio || 1);
+  let rafId = null;
+  let reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function isDarkNow() {
+    const attr = document.documentElement.getAttribute('data-theme');
+    if (attr === 'dark') return true;
+    if (attr === 'light') return false;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+
+  function resizeCanvas() {
+    dpr = Math.max(1, window.devicePixelRatio || 1);
+    canvas.width  = Math.round(window.innerWidth  * dpr);
+    canvas.height = Math.round(window.innerHeight * dpr);
+    canvas.style.width  = window.innerWidth  + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  // Palette de couleurs "sparkles" pour le mode clair (indigo profond, corail, bleu ciel)
+  const LIGHT_STAR_COLORS = ['70,55,140', '210,90,60', '40,90,190', '150,60,150'];
+
+  function generateStars() {
+    const dark = isDarkNow();
+    const w = window.innerWidth, h = window.innerHeight;
+    // Zone couvrant surface écran ; densité plus riche en mode sombre, discrète en mode clair
+    const area = w * h;
+    const density = dark ? 1 / 6500 : 1 / 9500;
+    const count = Math.max(30, Math.min(220, Math.round(area * density)));
+    stars = [];
+    for (let i = 0; i < count; i++) {
+      const baseR = dark ? (0.6 + Math.random() * 1.6) : (0.9 + Math.random() * 1.7);
+      stars.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: baseR,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.4 + Math.random() * 0.9,
+        maxOp: dark ? (0.35 + Math.random() * 0.65) : (0.45 + Math.random() * 0.4),
+        color: dark ? '255,255,255' : LIGHT_STAR_COLORS[Math.floor(Math.random() * LIGHT_STAR_COLORS.length)]
+      });
+    }
+  }
+
+  function draw(t) {
+    const dark = isDarkNow();
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    for (const s of stars) {
+      const tw = reduceMotion ? 1 : (0.5 + 0.5 * Math.sin(t * 0.0012 * s.speed + s.phase));
+      const op = s.maxOp * (0.35 + 0.65 * tw);
+      ctx.beginPath();
+      if (!dark) {
+        ctx.shadowColor = `rgba(${s.color},${(op * 0.6).toFixed(3)})`;
+        ctx.shadowBlur = s.r * 2.5;
+      } else {
+        ctx.shadowBlur = 0;
+      }
+      ctx.fillStyle = `rgba(${s.color},${op.toFixed(3)})`;
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (!reduceMotion) {
+      rafId = requestAnimationFrame(draw);
+    }
+  }
+
+  function start() {
+    if (rafId) cancelAnimationFrame(rafId);
+    resizeCanvas();
+    generateStars();
+    draw(0);
+    if (reduceMotion) {
+      // Rendu statique unique, pas de boucle d'animation
+      draw(performance.now());
+    }
+  }
+
+  window.regenerateStarfield = function() {
+    resizeCanvas();
+    generateStars();
+    if (reduceMotion && rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    draw(performance.now());
+  };
+
+  window.addEventListener('resize', () => { regenerateStarfield(); });
+  window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (e) => {
+    reduceMotion = e.matches;
+    start();
+  });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    regenerateStarfield();
+  });
+
+  // Regénère aussi si le thème change via un autre chemin que applyTheme (sécurité)
+  const themeObserver = new MutationObserver(() => { regenerateStarfield(); });
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  start();
+})();
+
+// ────────────────────────────────────────────────────────────────
+// MODE PRIVACY
+// ────────────────────────────────────────────────────────────────
+function togglePrivacy() {
+  settings.privacyMode = !settings.privacyMode;
+  applyPrivacyUI();
+  saveSettings();
+}
+
+function applyPrivacyUI() {
+  document.body.setAttribute('data-privacy', settings.privacyMode ? 'on' : 'off');
+  const cb = document.getElementById('set-privacy');
+  if (cb) cb.checked = settings.privacyMode;
+  const icon = document.getElementById('dashboard-privacy-icon');
+  const label = document.getElementById('dashboard-privacy-label');
+  if (icon) icon.textContent = settings.privacyMode ? '👁️' : '🙈';
+  if (label) label.textContent = settings.privacyMode ? 'Afficher les montants' : 'Flouter les montants';
+}
+
+// ────────────────────────────────────────────────────────────────
+// TOAST
+// ────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, duration = 3000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), duration);
+}
+
+// ────────────────────────────────────────────────────────────────
+// PERSISTANCE — Supabase (accessible depuis n'importe quel appareil,
+// indépendamment de l'état d'un Mac particulier)
+// ────────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://uferkqxtffbxnviribxf.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_agVEGVstAb454Vy3_0u_wg_UBaIKY0Q';
+const SUPABASE_HEADERS = {
+  'apikey': SUPABASE_KEY,
+  'Authorization': 'Bearer ' + SUPABASE_KEY,
+  'Content-Type': 'application/json'
+};
+
+function saveSettings() {
+  localStorage.setItem('caisse_domme_settings', JSON.stringify(settings));
+}
+
+let saveTimer;
+function debouncedSave(delay = 2000) {
+  clearTimeout(saveTimer);
+  localStorage.setItem('caisse_domme_data', JSON.stringify(appData));
+  saveTimer = setTimeout(saveToCloud, delay);
+}
+
+async function saveToCloud() {
+  try {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/app_data?id=eq.1', {
+      method: 'PATCH',
+      headers: SUPABASE_HEADERS,
+      body: JSON.stringify({ data: appData, updated_at: new Date().toISOString() })
+    });
+    if (r.ok) {
+      document.getElementById('sync-status').textContent = 'Cloud ✓';
+      document.getElementById('sync-status').style.color = 'var(--green)';
+      const info = document.getElementById('sync-info');
+      if (info) info.textContent = 'Dernière synchro : ' + new Date().toLocaleTimeString('fr-FR');
+    } else {
+      throw new Error('HTTP ' + r.status);
+    }
+  } catch(e) {
+    document.getElementById('sync-status').textContent = 'Cloud ✗';
+    document.getElementById('sync-status').style.color = 'var(--red)';
+  }
+}
+
+async function loadFromCloud() {
+  try {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/app_data?id=eq.1&select=data', {
+      headers: SUPABASE_HEADERS
+    });
+    if (!r.ok) return false;
+    const rows = await r.json();
+    const data = rows && rows[0] && rows[0].data;
+    if (data && data.entries) {
+      appData = { ...appData, ...data };
+      localStorage.setItem('caisse_domme_data', JSON.stringify(appData));
+      renderAll();
+      return true;
+    }
+    return false;
+  } catch(e) { console.warn('Cloud load failed:', e); return false; }
+}
+
+async function manualRefresh() {
+  const btn = document.getElementById('refresh-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⟳ …'; }
+  const ok = await loadFromCloud();
+  showToast(ok ? '✅ Données actualisées' : '⚠️ Échec de l\'actualisation');
+  if (btn) { btn.disabled = false; btn.textContent = '⟳ Actualiser'; }
+}
+
+function renderAll() { onPageSwitch(currentPage); }
+
+// ────────────────────────────────────────────────────────────────
+// CAISSE JOUR — formulaire + tableau
+// ────────────────────────────────────────────────────────────────
+let editingId = null;
+
+function updateFormJour() {
+  const date = document.getElementById('cj-date').value;
+  document.getElementById('cj-form-jour').textContent = date ? jourSemaineName(date) : '—';
+}
+
+// ────────────────────────────────────────────────────────────────
+// DÉROULEURS MÉTÉO / ÉVÉNEMENT (boutons à sélection unique)
+// ────────────────────────────────────────────────────────────────
+function selectToggleOption(groupId, val) {
+  const group = document.getElementById(groupId);
+  if (!group) return;
+  group.dataset.value = val;
+  group.querySelectorAll('.btn-toggle').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === val);
+  });
+}
+
+function saveEntry() {
+  const date = document.getElementById('cj-date').value;
+  if (!date) { showToast('Sélectionne une date'); return; }
+
+  const entry = {
+    id: editingId || (Date.now() + '-' + Math.random().toString(36).slice(2)),
+    date,
+    cb: parseFloat(document.getElementById('cj-cb').value) || 0,
+    espece: parseFloat(document.getElementById('cj-espece').value) || 0,
+    horsCaisse: parseFloat(document.getElementById('cj-hors').value) || 0,
+    meteo: document.getElementById('cj-meteo-group')?.dataset.value || 'aucun',
+    evenement: document.getElementById('cj-evenement-group')?.dataset.value || 'aucun',
+    note: document.getElementById('cj-note').value.trim()
+  };
+
+  // Une seule saisie par jour : upsert sur la date
+  const existingIdx = appData.entries.findIndex(e => e.date === date && e.id !== editingId);
+  if (existingIdx >= 0) {
+    appData.entries[existingIdx] = { ...entry, id: appData.entries[existingIdx].id };
+  } else if (editingId) {
+    const idx = appData.entries.findIndex(e => e.id === editingId);
+    if (idx >= 0) appData.entries[idx] = entry;
+  } else {
+    appData.entries.push(entry);
+  }
+
+  debouncedSave();
+  resetForm();
+  renderCaisse();
+  showToast('Journée enregistrée');
+}
+
+function editEntry(id) {
+  const e = appData.entries.find(x => x.id === id);
+  if (!e) return;
+  editingId = id;
+  document.getElementById('cj-date').value = e.date;
+  document.getElementById('cj-cb').value = e.cb || '';
+  document.getElementById('cj-espece').value = e.espece || '';
+  document.getElementById('cj-hors').value = e.horsCaisse || '';
+  selectToggleOption('cj-meteo-group', e.meteo || 'aucun');
+  selectToggleOption('cj-evenement-group', e.evenement || 'aucun');
+  document.getElementById('cj-note').value = e.note || '';
+  document.getElementById('cj-form-title').textContent = 'Modifier la saisie';
+  document.getElementById('cj-cancel-btn').style.display = 'inline-flex';
+  updateFormJour();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function deleteEntry(id) {
+  if (!confirm('Supprimer cette journée ?')) return;
+  appData.entries = appData.entries.filter(e => e.id !== id);
+  debouncedSave();
+  renderCaisse();
+  showToast('Journée supprimée');
+}
+
+function resetForm() {
+  editingId = null;
+  document.getElementById('cj-date').value = todayStr();
+  document.getElementById('cj-cb').value = '';
+  document.getElementById('cj-espece').value = '';
+  document.getElementById('cj-hors').value = '';
+  selectToggleOption('cj-meteo-group', 'aucun');
+  selectToggleOption('cj-evenement-group', 'aucun');
+  document.getElementById('cj-note').value = '';
+  document.getElementById('cj-form-title').textContent = 'Nouvelle saisie';
+  document.getElementById('cj-cancel-btn').style.display = 'none';
+  updateFormJour();
+}
+
+function renderCaisse() {
+  const allEntries = getSortedEntries();
+  const viewEntries = getFilteredSortedEntries();
+  const tbody = document.getElementById('caisse-table-body');
+
+  if (!viewEntries.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-row">${allEntries.length ? 'Aucun résultat pour cette recherche' : 'Aucune saisie'}</td></tr>`;
+  } else {
+    tbody.innerHTML = viewEntries.map(e => `
+      <tr>
+        <td>${formatDateFr(e.date)}</td>
+        <td>${jourSemaineName(e.date)}</td>
+        <td style="text-align:right" class="private">${fmtEuro(e.cb)}</td>
+        <td style="text-align:right" class="private">${fmtEuro(e.espece)}</td>
+        <td style="text-align:right" class="private">${fmtEuro(e.horsCaisse)}</td>
+        <td style="text-align:right;font-weight:600;color:var(--green)" class="private">${fmtEuro(computeTotal(e))}</td>
+        <td style="color:var(--text3)">${e.note || '—'}</td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-secondary btn-sm" onclick="editEntry('${e.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteEntry('${e.id}')">🗑</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  const countEl = document.getElementById('caisse-result-count');
+  if (countEl) {
+    countEl.textContent = viewEntries.length === allEntries.length
+      ? `${allEntries.length} saisie(s)`
+      : `${viewEntries.length} / ${allEntries.length} saisie(s)`;
+  }
+  document.querySelectorAll('#page-caisse .sort-arrow').forEach(el => {
+    el.textContent = el.dataset.key === caisseSortKey ? (caisseSortDir === 'asc' ? '▲' : '▼') : '';
+  });
+
+  // Métriques mois en cours (toujours calculées sur l'ensemble des saisies)
+  const now = new Date();
+  const monthPrefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const monthEntries = allEntries.filter(e => e.date.startsWith(monthPrefix));
+  const monthTotal = monthEntries.reduce((s,e) => s + computeTotal(e), 0);
+  document.getElementById('cj-metric-month').textContent = fmtEuro(monthTotal);
+  document.getElementById('cj-metric-month-sub').textContent = `${MOIS_FR[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('cj-metric-avg').textContent = fmtEuro(monthEntries.length ? monthTotal / monthEntries.length : 0);
+  document.getElementById('cj-metric-count').textContent = allEntries.length;
+
+  if (!editingId && !document.getElementById('cj-date').value) {
+    document.getElementById('cj-date').value = todayStr();
+    updateFormJour();
+  }
+}
+
+// ────────────────────────────────────────────────────────────────
+// DASHBOARD
+// ────────────────────────────────────────────────────────────────
+function startOfWeek(d) {
+  const date = new Date(d);
+  const day = (date.getDay() + 6) % 7; // lundi = 0
+  date.setDate(date.getDate() - day);
+  date.setHours(0,0,0,0);
+  return date;
+}
+
+function renderDashboard() {
+  const entries = appData.entries;
+  const today = new Date();
+  const todayS = todayStr();
+  const weekStart = startOfWeek(today);
+  const monthPrefix = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+
+  const todayEntry = entries.find(e => e.date === todayS);
+  const weekEntries = entries.filter(e => parseLocalDate(e.date) >= weekStart && parseLocalDate(e.date) <= today);
+  const monthEntries = entries.filter(e => e.date.startsWith(monthPrefix));
+
+  const sum = (arr, key) => arr.reduce((s,e) => s + (key ? (parseFloat(e[key])||0) : computeTotal(e)), 0);
+
+  document.getElementById('db-jour').textContent = fmtEuro(todayEntry ? computeTotal(todayEntry) : 0);
+  document.getElementById('db-jour-sub').textContent = todayEntry ? jourSemaineName(todayS) : "Aucune saisie aujourd'hui";
+  document.getElementById('db-semaine').textContent = fmtEuro(sum(weekEntries));
+  document.getElementById('db-semaine-sub').textContent = `${weekEntries.length} jour(s) saisis`;
+  document.getElementById('db-mois').textContent = fmtEuro(sum(monthEntries));
+  document.getElementById('db-mois-sub').textContent = `${MOIS_FR[today.getMonth()]} ${today.getFullYear()}`;
+
+  // Tableau répartition
+  const rows = [
+    ['CB', 'cb'], ['Espèce', 'espece'], ['Hors caisse', 'horsCaisse']
+  ];
+  document.getElementById('db-breakdown-body').innerHTML = rows.map(([label, key]) => `
+    <tr>
+      <td>${label}</td>
+      <td style="text-align:right" class="private">${fmtEuro(todayEntry ? (parseFloat(todayEntry[key])||0) : 0)}</td>
+      <td style="text-align:right" class="private">${fmtEuro(sum(weekEntries, key))}</td>
+      <td style="text-align:right" class="private">${fmtEuro(sum(monthEntries, key))}</td>
+    </tr>
+  `).join('');
+
+  renderEvolutionChart(entries);
+  renderRepartitionChart(monthEntries);
+}
+
+// Éclaircit (percent>0) ou fonce (percent<0) une couleur hex
+function shadeColor(hex, percent) {
+  hex = hex.replace('#','');
+  if (hex.length === 3) hex = hex.split('').map(c => c+c).join('');
+  const num = parseInt(hex, 16);
+  let r = (num >> 16) + Math.round(255 * percent / 100);
+  let g = ((num >> 8) & 0x00FF) + Math.round(255 * percent / 100);
+  let b = (num & 0x0000FF) + Math.round(255 * percent / 100);
+  r = Math.max(0, Math.min(255, r));
+  g = Math.max(0, Math.min(255, g));
+  b = Math.max(0, Math.min(255, b));
+  return '#' + (0x1000000 + r*0x10000 + g*0x100 + b).toString(16).slice(1);
+}
+
+let evolutionChart = null;
+function renderEvolutionChart(entries) {
+  const ctx = document.getElementById('chart-evolution');
+  if (!ctx) return;
+  if (evolutionChart) { evolutionChart.destroy(); evolutionChart = null; }
+
+  const days = [];
+  const today = new Date();
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const found = entries.find(e => e.date === ds);
+    days.push({ label: `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`, value: found ? computeTotal(found) : 0 });
+  }
+
+  const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#8a8a8f';
+  const greenColor = getComputedStyle(document.documentElement).getPropertyValue('--green').trim() || '#00c896';
+  const isDark = (document.documentElement.getAttribute('data-theme') === 'dark') ||
+    (!document.documentElement.hasAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  const canvasEl = ctx;
+  const c2d = canvasEl.getContext('2d');
+  const h = canvasEl.clientHeight || 260;
+  const w = canvasEl.clientWidth || 600;
+
+  // Dégradé de la ligne : bleu → vert horizontal (effet "verre")
+  const lineGrad = c2d.createLinearGradient(0, 0, w, 0);
+  lineGrad.addColorStop(0, accentColor);
+  lineGrad.addColorStop(1, greenColor);
+
+  // Dégradé de remplissage sous la courbe, avec un léger reflet en haut
+  const fillGrad = c2d.createLinearGradient(0, 0, 0, h);
+  fillGrad.addColorStop(0, isDark ? 'rgba(143,155,255,0.28)' : 'rgba(0,0,0,0.12)');
+  fillGrad.addColorStop(0.5, isDark ? 'rgba(143,155,255,0.08)' : 'rgba(0,0,0,0.04)');
+  fillGrad.addColorStop(1, 'rgba(255,255,255,0)');
+
+  evolutionChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: days.map(d => d.label),
+      datasets: [{
+        label: 'Recette',
+        data: days.map(d => d.value),
+        borderColor: lineGrad,
+        borderWidth: 2.5,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        pointHoverBackgroundColor: shadeColor(accentColor, isDark ? 40 : -20),
+        tension: 0.3,
+        fill: true,
+        backgroundColor: fillGrad
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => fmtEuro(ctx.parsed.y) } }
+      },
+      scales: {
+        x: { ticks: { maxTicksLimit: 8, font: { size: 11 }, maxRotation: 0 }, grid: { color: 'rgba(128,128,128,0.1)' } },
+        y: { position: 'right', ticks: { font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.1)' } }
+      }
+    }
+  });
+}
+
+let repartitionChart = null;
+function renderRepartitionChart(monthEntries) {
+  const ctx = document.getElementById('chart-repartition');
+  if (!ctx) return;
+  if (repartitionChart) { repartitionChart.destroy(); repartitionChart = null; }
+
+  const sum = (key) => monthEntries.reduce((s,e) => s + (parseFloat(e[key])||0), 0);
+  const values = [sum('cb'), sum('espece'), sum('horsCaisse')];
+  const cs = getComputedStyle(document.documentElement);
+  const cbColor = cs.getPropertyValue('--accent').trim() || '#8a8a8f';
+  const especeColor = cs.getPropertyValue('--green').trim() || '#00a878';
+  const horsCaisseColor = cs.getPropertyValue('--text3').trim() || '#9a9aa0';
+  const isDark = (document.documentElement.getAttribute('data-theme') === 'dark') ||
+    (!document.documentElement.hasAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const baseColors = [cbColor, especeColor, horsCaisseColor];
+
+  // Dégradé radial par tranche (effet verre/brillant), calculé une fois le canvas monté
+  function sliceGradient(chart, colorIndex) {
+    const { ctx: c2d, chartArea } = chart;
+    if (!chartArea) return baseColors[colorIndex];
+    const { left, right, top, bottom } = chartArea;
+    const cx = (left + right) / 2, cy = (top + bottom) / 2;
+    const r = Math.min(right - left, bottom - top) / 2;
+    const grad = c2d.createRadialGradient(cx - r*0.3, cy - r*0.4, r*0.1, cx, cy, r);
+    grad.addColorStop(0, shadeColor(baseColors[colorIndex], isDark ? 26 : 18));
+    grad.addColorStop(1, shadeColor(baseColors[colorIndex], isDark ? -14 : -8));
+    return grad;
+  }
+
+  repartitionChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['CB', 'Espèce', 'Hors caisse'],
+      datasets: [{
+        data: values,
+        backgroundColor: (context) => sliceGradient(context.chart, context.dataIndex),
+        borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.7)',
+        borderWidth: 2,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 10 } },
+        tooltip: { callbacks: { label: ctx => `${ctx.label}: ${fmtEuro(ctx.parsed)}` } }
+      }
+    }
+  });
+}
+
+// ────────────────────────────────────────────────────────────────
+// COMPARATIF N-1
+// ────────────────────────────────────────────────────────────────
+function renderN1() {
+  const entries = appData.entries;
+  const byDate = {};
+  entries.forEach(e => byDate[e.date] = e);
+
+  const comparable = [];
+  entries.forEach(e => {
+    const d = parseLocalDate(e.date);
+    const prevYearDate = new Date(d.getFullYear() - 1, d.getMonth(), d.getDate());
+    const prevDs = `${prevYearDate.getFullYear()}-${String(prevYearDate.getMonth()+1).padStart(2,'0')}-${String(prevYearDate.getDate()).padStart(2,'0')}`;
+    const prevEntry = byDate[prevDs];
+    if (prevEntry) {
+      comparable.push({ current: e, prev: prevEntry });
+    }
+  });
+
+  const emptyEl = document.getElementById('n1-empty');
+  const contentEl = document.getElementById('n1-content');
+
+  if (!comparable.length) {
+    emptyEl.style.display = 'block';
+    contentEl.style.display = 'none';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  contentEl.style.display = 'block';
+
+  comparable.sort((a,b) => b.current.date.localeCompare(a.current.date));
+
+  let totalEcart = 0;
+  const rows = comparable.map(({ current, prev }) => {
+    const tCur = computeTotal(current);
+    const tPrev = computeTotal(prev);
+    const ecart = tPrev !== 0 ? ((tCur - tPrev) / tPrev) * 100 : 0;
+    totalEcart += ecart;
+    const cls = ecart >= 0 ? 'badge-green' : 'badge-red';
+    const sign = ecart >= 0 ? '+' : '';
+    return `
+      <tr>
+        <td>${formatDateFr(current.date)}</td>
+        <td>${jourSemaineName(current.date)}</td>
+        <td style="text-align:right" class="private">${fmtEuro(tCur)}</td>
+        <td style="text-align:right" class="private">${fmtEuro(tPrev)}</td>
+        <td style="text-align:right"><span class="badge ${cls}">${sign}${ecart.toFixed(1)}%</span></td>
+      </tr>
+    `;
+  }).join('');
+
+  document.getElementById('n1-table-body').innerHTML = rows;
+  document.getElementById('n1-count').textContent = comparable.length;
+  const avgEcart = totalEcart / comparable.length;
+  const avgEl = document.getElementById('n1-ecart-moyen');
+  avgEl.textContent = `${avgEcart >= 0 ? '+' : ''}${avgEcart.toFixed(1)}%`;
+  avgEl.className = 'metric-value ' + (avgEcart >= 0 ? 'green' : 'red');
+}
+
+// ────────────────────────────────────────────────────────────────
+// ANALYSE (agent local — stats sur les données)
+// ────────────────────────────────────────────────────────────────
+function refreshAnalyse() {
+  renderAnalyse();
+  showToast('Analyse actualisée');
+}
+
+function renderAnalyse() {
+  const entries = appData.entries;
+  const emptyEl = document.getElementById('analyse-empty');
+  const contentEl = document.getElementById('analyse-content');
+
+  if (entries.length < 3) {
+    emptyEl.style.display = 'block';
+    contentEl.style.display = 'none';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  contentEl.style.display = 'block';
+
+  // Moyenne par jour de semaine
+  const byJour = Array.from({ length: 7 }, () => ({ total: 0, count: 0 }));
+  entries.forEach(e => {
+    const dow = parseLocalDate(e.date).getDay();
+    byJour[dow].total += computeTotal(e);
+    byJour[dow].count += 1;
+  });
+
+  const jourStats = byJour
+    .map((v, i) => ({ jour: JOURS_FR[i], moy: v.count ? v.total / v.count : 0, count: v.count }))
+    .filter(j => j.count > 0)
+    .sort((a,b) => b.moy - a.moy);
+
+  document.getElementById('analyse-jours-body').innerHTML = jourStats.map(j => `
+    <tr>
+      <td>${j.jour}</td>
+      <td style="text-align:right" class="private">${fmtEuro(j.moy)}</td>
+      <td style="text-align:right">${j.count}</td>
+    </tr>
+  `).join('');
+
+  // Top 5 meilleures journées
+  const top5 = [...entries].sort((a,b) => computeTotal(b) - computeTotal(a)).slice(0, 5);
+  document.getElementById('analyse-top-body').innerHTML = top5.map(e => `
+    <tr>
+      <td>${formatDateFr(e.date)} · ${jourSemaineName(e.date)}${e.note ? ' — ' + e.note : ''}</td>
+      <td style="text-align:right;font-weight:600" class="private">${fmtEuro(computeTotal(e))}</td>
+    </tr>
+  `).join('');
+
+  // Insight texte
+  let insight = '—';
+  if (jourStats.length >= 2) {
+    const best = jourStats[0];
+    const worst = jourStats[jourStats.length - 1];
+    const diffPct = worst.moy > 0 ? ((best.moy - worst.moy) / worst.moy) * 100 : 0;
+    insight = `Le <b>${best.jour}</b> est en moyenne le jour le plus performant (${fmtEuro(best.moy)}/jour sur ${best.count} occurrence(s)), soit ${diffPct.toFixed(0)}% de plus que le <b>${worst.jour}</b> (${fmtEuro(worst.moy)}/jour), le jour le plus faible.`;
+  } else if (jourStats.length === 1) {
+    insight = `Toutes les saisies sont concentrées sur le ${jourStats[0].jour}. Ajoute d'autres jours de la semaine pour affiner l'analyse.`;
+  }
+  document.getElementById('insight-text').innerHTML = insight;
+}
+
+// ────────────────────────────────────────────────────────────────
+// MOYENNES — suivi précis par mode, jour, semaine, mois
+// ────────────────────────────────────────────────────────────────
+function switchMoyTab(name) {
+  document.querySelectorAll('#page-moyennes .moy-tab').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('#page-moyennes .tab-btn').forEach(b => b.classList.remove('active'));
+  const tabEl = document.getElementById(`moy-tab-${name}`);
+  if (tabEl) tabEl.style.display = 'block';
+  document.querySelectorAll('#page-moyennes .tab-btn').forEach(b => {
+    if (b.getAttribute('onclick')?.includes(`'${name}'`)) b.classList.add('active');
+  });
+}
+
+function renderMoyennes() {
+  const entries = appData.entries;
+  const emptyEl = document.getElementById('moyennes-empty');
+  const contentEl = document.getElementById('moyennes-content');
+
+  if (!entries.length) {
+    emptyEl.style.display = 'block';
+    contentEl.style.display = 'none';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  contentEl.style.display = 'block';
+
+  const n = entries.length;
+  const sumKey = (key) => entries.reduce((s,e) => s + (parseFloat(e[key])||0), 0);
+  const totalCb = sumKey('cb'), totalEspece = sumKey('espece'), totalHc = sumKey('horsCaisse');
+  const totalGlobal = totalCb + totalEspece + totalHc;
+
+  document.getElementById('moy-cb').textContent = fmtEuro(totalCb);
+  document.getElementById('moy-cb-sub').textContent = `Moyenne ${fmtEuro(totalCb / n)} / jour sur ${n} jour(s)`;
+  document.getElementById('moy-espece').textContent = fmtEuro(totalEspece);
+  document.getElementById('moy-espece-sub').textContent = `Moyenne ${fmtEuro(totalEspece / n)} / jour sur ${n} jour(s)`;
+  document.getElementById('moy-hc').textContent = fmtEuro(totalHc);
+  document.getElementById('moy-hc-sub').textContent = `Moyenne ${fmtEuro(totalHc / n)} / jour sur ${n} jour(s)`;
+  document.getElementById('moy-global').textContent = fmtEuro(totalGlobal);
+  document.getElementById('moy-global-sub').textContent = `Moyenne ${fmtEuro(totalGlobal / n)} / jour sur ${n} jour(s)`;
+
+  // ── Onglet Modes de paiement ──
+  const modes = [['CB', totalCb], ['Espèce', totalEspece], ['Hors caisse', totalHc]];
+  document.getElementById('moy-modes-body').innerHTML = modes.map(([label, total]) => `
+    <tr>
+      <td>${label}</td>
+      <td style="text-align:right" class="private">${fmtEuro(total / n)}</td>
+      <td style="text-align:right" class="private">${fmtEuro(total)}</td>
+      <td style="text-align:right">${totalGlobal ? ((total/totalGlobal)*100).toFixed(1) : '0.0'}%</td>
+    </tr>
+  `).join('');
+
+  // ── Onglet Jours de semaine ──
+  const byJour = Array.from({ length: 7 }, () => ({ cb:0, espece:0, hc:0, total:0, count:0 }));
+  entries.forEach(e => {
+    const dow = parseLocalDate(e.date).getDay();
+    byJour[dow].cb += parseFloat(e.cb)||0;
+    byJour[dow].espece += parseFloat(e.espece)||0;
+    byJour[dow].hc += parseFloat(e.horsCaisse)||0;
+    byJour[dow].total += computeTotal(e);
+    byJour[dow].count += 1;
+  });
+  const order = [1,2,3,4,5,6,0]; // Lundi → Dimanche
+  document.getElementById('moy-jours-body').innerHTML = order.map(i => {
+    const v = byJour[i];
+    if (!v.count) return `<tr><td>${JOURS_FR[i]}</td><td colspan="5" style="color:var(--text3)">Aucune donnée</td></tr>`;
+    return `
+      <tr>
+        <td>${JOURS_FR[i]}</td>
+        <td style="text-align:right" class="private">${fmtEuro(v.cb / v.count)}</td>
+        <td style="text-align:right" class="private">${fmtEuro(v.espece / v.count)}</td>
+        <td style="text-align:right" class="private">${fmtEuro(v.hc / v.count)}</td>
+        <td style="text-align:right;font-weight:600" class="private">${fmtEuro(v.total / v.count)}</td>
+        <td style="text-align:right">${v.count}</td>
+      </tr>
+    `;
+  }).join('');
+
+  // ── Onglet Semaines ──
+  const byWeek = {};
+  entries.forEach(e => {
+    const ws = startOfWeek(parseLocalDate(e.date));
+    const key = `${ws.getFullYear()}-${String(ws.getMonth()+1).padStart(2,'0')}-${String(ws.getDate()).padStart(2,'0')}`;
+    if (!byWeek[key]) byWeek[key] = { start: ws, total: 0, count: 0 };
+    byWeek[key].total += computeTotal(e);
+    byWeek[key].count += 1;
+  });
+  const weekKeys = Object.keys(byWeek).sort((a,b) => b.localeCompare(a));
+  document.getElementById('moy-semaines-body').innerHTML = weekKeys.map((key, idx) => {
+    const w = byWeek[key];
+    const end = new Date(w.start); end.setDate(end.getDate()+6);
+    const label = `${String(w.start.getDate()).padStart(2,'0')}/${String(w.start.getMonth()+1).padStart(2,'0')} → ${String(end.getDate()).padStart(2,'0')}/${String(end.getMonth()+1).padStart(2,'0')}`;
+    const prevKey = weekKeys[idx+1];
+    let ecartHtml = '—';
+    if (prevKey) {
+      const prevAvg = byWeek[prevKey].total / byWeek[prevKey].count;
+      const curAvg = w.total / w.count;
+      const ecart = prevAvg !== 0 ? ((curAvg - prevAvg)/prevAvg)*100 : 0;
+      const cls = ecart >= 0 ? 'badge-green' : 'badge-red';
+      const sign = ecart >= 0 ? '+' : '';
+      ecartHtml = `<span class="badge ${cls}">${sign}${ecart.toFixed(1)}%</span>`;
+    }
+    return `
+      <tr>
+        <td>${label}</td>
+        <td style="text-align:right;font-weight:600" class="private">${fmtEuro(w.total)}</td>
+        <td style="text-align:right" class="private">${fmtEuro(w.total / w.count)}</td>
+        <td style="text-align:right">${w.count}</td>
+        <td style="text-align:right">${ecartHtml}</td>
+      </tr>
+    `;
+  }).join('');
+
+  // ── Onglet Mois ──
+  const byMonth = {};
+  entries.forEach(e => {
+    const key = e.date.slice(0,7); // YYYY-MM
+    if (!byMonth[key]) byMonth[key] = { total: 0, cb: 0, espece: 0, hc: 0, count: 0 };
+    byMonth[key].total += computeTotal(e);
+    byMonth[key].cb += parseFloat(e.cb)||0;
+    byMonth[key].espece += parseFloat(e.espece)||0;
+    byMonth[key].hc += parseFloat(e.horsCaisse)||0;
+    byMonth[key].count += 1;
+  });
+  const monthKeys = Object.keys(byMonth).sort((a,b) => b.localeCompare(a));
+  document.getElementById('moy-mois-body').innerHTML = monthKeys.map((key, idx) => {
+    const m = byMonth[key];
+    const [y, mo] = key.split('-').map(Number);
+    const label = `${MOIS_FR[mo-1]} ${y}`;
+    const prevKey = monthKeys[idx+1];
+    let ecartHtml = '—';
+    if (prevKey) {
+      const prevAvg = byMonth[prevKey].total / byMonth[prevKey].count;
+      const curAvg = m.total / m.count;
+      const ecart = prevAvg !== 0 ? ((curAvg - prevAvg)/prevAvg)*100 : 0;
+      const cls = ecart >= 0 ? 'badge-green' : 'badge-red';
+      const sign = ecart >= 0 ? '+' : '';
+      ecartHtml = `<span class="badge ${cls}">${sign}${ecart.toFixed(1)}%</span>`;
+    }
+    return `
+      <tr>
+        <td style="text-transform:capitalize">${label}</td>
+        <td style="text-align:right;font-weight:600" class="private">${fmtEuro(m.total)}</td>
+        <td style="text-align:right" class="private">${fmtEuro(m.cb)}</td>
+        <td style="text-align:right" class="private">${fmtEuro(m.espece)}</td>
+        <td style="text-align:right" class="private">${fmtEuro(m.hc)}</td>
+        <td style="text-align:right" class="private">${fmtEuro(m.total / m.count)}</td>
+        <td style="text-align:right">${m.count}</td>
+        <td style="text-align:right">${ecartHtml}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// ────────────────────────────────────────────────────────────────
+// RESET
+// ────────────────────────────────────────────────────────────────
+function confirmReset() {
+  if (!confirm('Réinitialiser toutes les données ? Cette action est irréversible.')) return;
+  appData = { entries: [] };
+  localStorage.removeItem('caisse_domme_data');
+  saveToCloud();
+  renderAll();
+  showToast('Données réinitialisées');
+}
+
+// ────────────────────────────────────────────────────────────────
+// INITIALISATION
+// ────────────────────────────────────────────────────────────────
+(function init() {
+  if (localStorage.getItem('caisse_domme_sidebar_collapsed') === '1') {
+    document.getElementById('layout').classList.add('sb-collapsed');
+  }
+
+  applyTheme(settings.theme || 'auto');
+
+  applyPrivacyUI();
+
+  document.getElementById('cj-date').value = todayStr();
+  updateFormJour();
+
+  renderAll();
+  loadFromCloud();
+
+  document.getElementById('last-update').textContent =
+    'Mis à jour ' + new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+})();
+
+</script>
+</body>
+</html>
