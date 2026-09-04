@@ -373,6 +373,28 @@ canvas { display: block; }
 }
 
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+/* ── Écran de connexion ─────────────────────────────────────── */
+#login-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg);
+  background-attachment: fixed;
+  padding: 20px;
+}
+.login-card {
+  width: 100%; max-width: 340px;
+  background: linear-gradient(155deg, var(--surf-top), var(--surf-bot));
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  padding: 2rem 1.75rem;
+}
+.login-title { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 4px; text-align: center; }
+.login-sub { font-size: 12px; color: var(--text3); margin-bottom: 1.5rem; text-align: center; }
+.login-card .form-group { margin-bottom: 1rem; }
+.login-error { color: var(--red); font-size: 12px; min-height: 16px; margin-bottom: .75rem; }
 @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
 
 </style>
@@ -413,6 +435,26 @@ let settings = {
 <canvas id="starfield"></canvas>
 <div class="bg-blob bg-blob-1"></div>
 <div class="bg-blob bg-blob-2"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ÉCRAN DE CONNEXION — obligatoire pour accéder aux données
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="login-overlay" style="display:none">
+  <form id="login-form" class="login-card">
+    <div class="login-title">Caisse Domme</div>
+    <div class="login-sub">Connecte-toi pour accéder à tes données</div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="login-email" autocomplete="username" required/>
+    </div>
+    <div class="form-group">
+      <label>Mot de passe</label>
+      <input type="password" id="login-password" autocomplete="current-password" required/>
+    </div>
+    <div id="login-error" class="login-error"></div>
+    <button type="submit" class="btn btn-primary" id="login-submit-btn" style="width:100%;justify-content:center">Se connecter</button>
+  </form>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════════════
      STRUCTURE LAYOUT
@@ -468,6 +510,12 @@ let settings = {
         ⟳ Actualiser
       </button>
       <span id="sync-status" style="color:var(--green)">—</span>
+      <button onclick="logoutSupabase()" id="logout-btn"
+        style="background:none;border:none;border-radius:6px;
+               padding:4px 0 0 0;font-size:10px;color:var(--text3);cursor:pointer;
+               font-family:'DM Sans',sans-serif;margin-top:8px;width:100%;text-align:left;text-decoration:underline">
+        Se déconnecter
+      </button>
     </div>
 
   </aside>
@@ -1156,14 +1204,112 @@ function showToast(msg, duration = 3000) {
 // ────────────────────────────────────────────────────────────────
 // PERSISTANCE — Supabase (accessible depuis n'importe quel appareil,
 // indépendamment de l'état d'un Mac particulier)
+// Accès protégé par authentification (email + mot de passe) : la clé
+// "publishable" ci-dessous n'ouvre AUCUN accès aux données tant que
+// l'utilisateur n'est pas connecté (RLS Supabase = "authenticated" only).
 // ────────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://uferkqxtffbxnviribxf.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_agVEGVstAb454Vy3_0u_wg_UBaIKY0Q';
-const SUPABASE_HEADERS = {
-  'apikey': SUPABASE_KEY,
-  'Authorization': 'Bearer ' + SUPABASE_KEY,
-  'Content-Type': 'application/json'
-};
+const AUTH_STORAGE_KEY = 'caisse_domme_auth';
+
+function getStoredSession() {
+  try { return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) || 'null'); }
+  catch(e) { return null; }
+}
+function saveStoredSession(session) {
+  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
+}
+function clearStoredSession() {
+  localStorage.removeItem(AUTH_STORAGE_KEY);
+}
+
+// Rafraîchit le jeton d'accès si nécessaire (les JWT Supabase expirent ~1h).
+// Retourne le token valide, ou null si la session n'est plus valable (→ écran de connexion).
+async function ensureValidSession() {
+  const session = getStoredSession();
+  if (!session) return null;
+  const now = Date.now();
+  if (session.expires_at && now < session.expires_at - 60000) {
+    return session.access_token;
+  }
+  // Token expiré (ou proche) : on tente un rafraîchissement silencieux
+  try {
+    const r = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: session.refresh_token })
+    });
+    if (!r.ok) { clearStoredSession(); return null; }
+    const d = await r.json();
+    const newSession = {
+      access_token: d.access_token,
+      refresh_token: d.refresh_token,
+      expires_at: Date.now() + (d.expires_in || 3600) * 1000
+    };
+    saveStoredSession(newSession);
+    return newSession.access_token;
+  } catch(e) { return null; }
+}
+
+async function authHeaders() {
+  const token = await ensureValidSession();
+  if (!token) return null;
+  return {
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + token,
+    'Content-Type': 'application/json'
+  };
+}
+
+async function loginSupabase(email, password) {
+  const r = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error_description || d.msg || 'Connexion refusée');
+  saveStoredSession({
+    access_token: d.access_token,
+    refresh_token: d.refresh_token,
+    expires_at: Date.now() + (d.expires_in || 3600) * 1000
+  });
+}
+
+function logoutSupabase() {
+  clearStoredSession();
+  showLoginScreen();
+}
+
+function showLoginScreen() {
+  const el = document.getElementById('login-overlay');
+  if (el) el.style.display = 'flex';
+}
+function hideLoginScreen() {
+  const el = document.getElementById('login-overlay');
+  if (el) el.style.display = 'none';
+}
+
+async function handleLoginSubmit(ev) {
+  if (ev) ev.preventDefault();
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-submit-btn');
+  if (!email || !password) { errEl.textContent = 'Renseigne l\'email et le mot de passe.'; return; }
+  errEl.textContent = '';
+  btn.disabled = true; btn.textContent = 'Connexion…';
+  try {
+    await loginSupabase(email, password);
+    hideLoginScreen();
+    renderAll();
+    loadFromCloud();
+  } catch(e) {
+    errEl.textContent = e.message || 'Connexion refusée. Vérifie l\'email et le mot de passe.';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Se connecter';
+  }
+}
 
 function saveSettings() {
   localStorage.setItem('caisse_domme_settings', JSON.stringify(settings));
@@ -1178,9 +1324,11 @@ function debouncedSave(delay = 2000) {
 
 async function saveToCloud() {
   try {
+    const headers = await authHeaders();
+    if (!headers) { showLoginScreen(); throw new Error('Session expirée'); }
     const r = await fetch(SUPABASE_URL + '/rest/v1/app_data?id=eq.1', {
       method: 'PATCH',
-      headers: SUPABASE_HEADERS,
+      headers,
       body: JSON.stringify({ data: appData, updated_at: new Date().toISOString() })
     });
     if (r.ok) {
@@ -1199,8 +1347,10 @@ async function saveToCloud() {
 
 async function loadFromCloud() {
   try {
+    const headers = await authHeaders();
+    if (!headers) { showLoginScreen(); return false; }
     const r = await fetch(SUPABASE_URL + '/rest/v1/app_data?id=eq.1&select=data', {
-      headers: SUPABASE_HEADERS
+      headers
     });
     if (!r.ok) return false;
     const rows = await r.json();
@@ -1844,7 +1994,7 @@ function confirmReset() {
 // ────────────────────────────────────────────────────────────────
 // INITIALISATION
 // ────────────────────────────────────────────────────────────────
-(function init() {
+(async function init() {
   if (localStorage.getItem('caisse_domme_sidebar_collapsed') === '1') {
     document.getElementById('layout').classList.add('sb-collapsed');
   }
@@ -1857,10 +2007,17 @@ function confirmReset() {
   updateFormJour();
 
   renderAll();
-  loadFromCloud();
 
   document.getElementById('last-update').textContent =
     'Mis à jour ' + new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+
+  // Écran de connexion tant qu'aucune session valide n'est trouvée
+  const token = await ensureValidSession();
+  if (token) { hideLoginScreen(); loadFromCloud(); }
+  else { showLoginScreen(); }
+
+  const loginForm = document.getElementById('login-form');
+  if (loginForm) loginForm.addEventListener('submit', handleLoginSubmit);
 })();
 
 </script>
