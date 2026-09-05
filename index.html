@@ -868,6 +868,34 @@ let settings = {
             </table>
           </div>
         </div>
+
+        <div class="grid-2" style="margin-top:1.5rem">
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr><th>Météo</th><th style="text-align:right">Recette moy.</th><th style="text-align:right">Nb jours</th></tr>
+              </thead>
+              <tbody id="analyse-meteo-body"></tbody>
+            </table>
+          </div>
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr><th>Événement</th><th style="text-align:right">Recette moy.</th><th style="text-align:right">Nb jours</th></tr>
+              </thead>
+              <tbody id="analyse-evenement-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="table-card" style="margin-top:1.5rem">
+          <table>
+            <thead>
+              <tr><th>Vendeur</th><th style="text-align:right">Recette moy.</th><th style="text-align:right">Nb jours</th></tr>
+            </thead>
+            <tbody id="analyse-vendeur-body"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -1937,6 +1965,23 @@ function renderN1() {
 // ────────────────────────────────────────────────────────────────
 // ANALYSE (agent local — stats sur les données)
 // ────────────────────────────────────────────────────────────────
+const ANALYSE_METEO_LABELS = { pluie:'🌧️ Pluie', soleil:'☀️ Soleil', chaleur:'🔥 Chaleur', nuageux:'☁️ Nuageux', doux:'🌤️ Doux', aucun:'— Aucun' };
+const ANALYSE_EVENEMENT_LABELS = { ferie:'🎌 Jour férié', marche:'🛍️ Marché', autre:'✨ Autre', aucun:'— Aucun' };
+const ANALYSE_VENDEUR_LABELS = { julien:'Julien', sandra:'Sandra', remy:'Rémy', mariam:'Mariam', autre:'— Autre', aucun:'— Autre' };
+
+function aggregateByField(entries, field, labels) {
+  const map = {};
+  entries.forEach(e => {
+    const key = e[field] || 'aucun';
+    if (!map[key]) map[key] = { total: 0, count: 0 };
+    map[key].total += computeTotal(e);
+    map[key].count += 1;
+  });
+  return Object.keys(map)
+    .map(key => ({ key, label: labels[key] || key, moy: map[key].total / map[key].count, count: map[key].count }))
+    .sort((a,b) => b.moy - a.moy);
+}
+
 function refreshAnalyse() {
   renderAnalyse();
   showToast('Analyse actualisée');
@@ -1978,12 +2023,36 @@ function renderAnalyse() {
 
   // Top 5 meilleures journées
   const top5 = [...entries].sort((a,b) => computeTotal(b) - computeTotal(a)).slice(0, 5);
-  document.getElementById('analyse-top-body').innerHTML = top5.map(e => `
+  document.getElementById('analyse-top-body').innerHTML = top5.map(e => {
+    const tags = [];
+    if (e.meteo && e.meteo !== 'aucun') tags.push(ANALYSE_METEO_LABELS[e.meteo] || e.meteo);
+    if (e.evenement && e.evenement !== 'aucun') tags.push(ANALYSE_EVENEMENT_LABELS[e.evenement] || e.evenement);
+    if (e.vendeur && e.vendeur !== 'aucun' && e.vendeur !== 'autre') tags.push(ANALYSE_VENDEUR_LABELS[e.vendeur] || e.vendeur);
+    const tagsHtml = tags.length ? ' · ' + tags.join(' · ') : '';
+    return `
     <tr>
-      <td>${formatDateFr(e.date)} · ${jourSemaineName(e.date)}${e.note ? ' — ' + e.note : ''}</td>
+      <td>${formatDateFr(e.date)} · ${jourSemaineName(e.date)}${tagsHtml}${e.note ? ' — ' + e.note : ''}</td>
       <td style="text-align:right;font-weight:600" class="private">${fmtEuro(computeTotal(e))}</td>
     </tr>
+  `;
+  }).join('');
+
+  // Moyenne par météo / événement / vendeur
+  const meteoStats = aggregateByField(entries, 'meteo', ANALYSE_METEO_LABELS);
+  const evenementStats = aggregateByField(entries, 'evenement', ANALYSE_EVENEMENT_LABELS);
+  const vendeurStats = aggregateByField(entries, 'vendeur', ANALYSE_VENDEUR_LABELS);
+
+  const renderStatRows = (stats) => stats.map(s => `
+    <tr>
+      <td>${s.label}</td>
+      <td style="text-align:right" class="private">${fmtEuro(s.moy)}</td>
+      <td style="text-align:right">${s.count}</td>
+    </tr>
   `).join('');
+
+  document.getElementById('analyse-meteo-body').innerHTML = renderStatRows(meteoStats);
+  document.getElementById('analyse-evenement-body').innerHTML = renderStatRows(evenementStats);
+  document.getElementById('analyse-vendeur-body').innerHTML = renderStatRows(vendeurStats);
 
   // Insight texte
   let insight = '—';
@@ -1995,6 +2064,21 @@ function renderAnalyse() {
   } else if (jourStats.length === 1) {
     insight = `Toutes les saisies sont concentrées sur le ${jourStats[0].jour}. Ajoute d'autres jours de la semaine pour affiner l'analyse.`;
   }
+
+  // Complément météo/événement si assez de variété
+  const meteoAvec = meteoStats.filter(s => s.key !== 'aucun' && s.count > 0);
+  if (meteoAvec.length >= 1 && meteoStats.length >= 2) {
+    const bestMeteo = meteoStats[0];
+    if (bestMeteo.key !== 'aucun') {
+      insight += ` Côté météo, les journées "<b>${bestMeteo.label}</b>" affichent la meilleure moyenne (${fmtEuro(bestMeteo.moy)}/jour).`;
+    }
+  }
+  const evenementAvec = evenementStats.filter(s => s.key !== 'aucun' && s.count > 0);
+  if (evenementAvec.length >= 1) {
+    const bestEvenement = evenementAvec.sort((a,b) => b.moy - a.moy)[0];
+    insight += ` Les journées marquées "<b>${bestEvenement.label}</b>" ressortent avec ${fmtEuro(bestEvenement.moy)}/jour en moyenne.`;
+  }
+
   document.getElementById('insight-text').innerHTML = insight;
 }
 
