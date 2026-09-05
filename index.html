@@ -473,7 +473,7 @@ canvas { display: block; }
      ─────────────────────────────────────────────────────────────── -->
 <script>
 // ── Données ─────────────────────────────────────────────────────────────────
-// entries: [{ id, date:'YYYY-MM-DD', cb, espece, horsCaisse, note }]  — une entrée par jour
+// entries: [{ id, date:'YYYY-MM-DD', cb, espece, horsCaisse, cheque, note }]  — une entrée par jour
 let appData = {
   entries: [],
 };
@@ -646,6 +646,10 @@ let settings = {
             <label>Hors caisse (€)</label>
             <input type="number" id="cj-hors" step="0.01" min="0" placeholder="0.00"/>
           </div>
+          <div class="form-group">
+            <label>Chèque (€)</label>
+            <input type="number" id="cj-cheque" step="0.01" min="0" placeholder="0.00"/>
+          </div>
           <div class="form-group" style="grid-column: 1 / -1">
             <label>Météo</label>
             <div class="btn-toggle-group" id="cj-meteo-group" data-value="aucun">
@@ -693,13 +697,14 @@ let settings = {
               <th class="sortable" onclick="sortCaisseTable('cb')" style="text-align:right;cursor:pointer">CB <span class="sort-arrow" data-key="cb"></span></th>
               <th class="sortable" onclick="sortCaisseTable('espece')" style="text-align:right;cursor:pointer">Espèce <span class="sort-arrow" data-key="espece"></span></th>
               <th class="sortable" onclick="sortCaisseTable('horsCaisse')" style="text-align:right;cursor:pointer">Hors caisse <span class="sort-arrow" data-key="horsCaisse"></span></th>
+              <th class="sortable" onclick="sortCaisseTable('cheque')" style="text-align:right;cursor:pointer">Chèque <span class="sort-arrow" data-key="cheque"></span></th>
               <th class="sortable" onclick="sortCaisseTable('total')" style="text-align:right;cursor:pointer">Total <span class="sort-arrow" data-key="total"></span></th>
               <th>Note</th>
               <th></th>
             </tr>
           </thead>
           <tbody id="caisse-table-body">
-            <tr><td colspan="8" class="empty-row">Aucune saisie</td></tr>
+            <tr><td colspan="9" class="empty-row">Aucune saisie</td></tr>
           </tbody>
         </table>
       </div>
@@ -889,6 +894,11 @@ let settings = {
             <div class="metric-sub" id="moy-hc-sub">—</div>
           </div>
           <div class="metric-card">
+            <div class="metric-label">Total Chèque</div>
+            <div class="metric-value private" id="moy-cheque">0 €</div>
+            <div class="metric-sub" id="moy-cheque-sub">—</div>
+          </div>
+          <div class="metric-card">
             <div class="metric-label">Total général</div>
             <div class="metric-value green private" id="moy-global">0 €</div>
             <div class="metric-sub" id="moy-global-sub">—</div>
@@ -910,11 +920,16 @@ let settings = {
               <div class="metric-label">Hors caisse</div>
               <div class="metric-value" id="moy-pct-hc" style="font-size:26px;color:var(--text3)">0%</div>
             </div>
+            <div style="flex:1;min-width:110px">
+              <div class="metric-label">Chèque</div>
+              <div class="metric-value" id="moy-pct-cheque" style="font-size:26px;color:#f59e0b">0%</div>
+            </div>
           </div>
           <div style="display:flex;height:10px;border-radius:6px;overflow:hidden;margin-top:1.25rem;background:var(--surface2)">
             <div id="moy-pct-bar-cb" style="background:var(--accent);transition:width .3s"></div>
             <div id="moy-pct-bar-espece" style="background:var(--green);transition:width .3s"></div>
             <div id="moy-pct-bar-hc" style="background:var(--text3);transition:width .3s"></div>
+            <div id="moy-pct-bar-cheque" style="background:#f59e0b;transition:width .3s"></div>
           </div>
         </div>
 
@@ -929,7 +944,7 @@ let settings = {
           <div class="table-card">
             <table>
               <thead>
-                <tr><th>Mois</th><th style="text-align:right">Total</th><th style="text-align:right">CB</th><th style="text-align:right">Espèce</th><th style="text-align:right">Hors caisse</th><th style="text-align:right">Moyenne / jour</th><th style="text-align:right">Nb jours saisis</th><th style="text-align:right">Écart vs mois préc.</th></tr>
+                <tr><th>Mois</th><th style="text-align:right">Total</th><th style="text-align:right">CB</th><th style="text-align:right">Espèce</th><th style="text-align:right">Hors caisse</th><th style="text-align:right">Chèque</th><th style="text-align:right">Moyenne / jour</th><th style="text-align:right">Nb jours saisis</th><th style="text-align:right">Écart vs mois préc.</th></tr>
               </thead>
               <tbody id="moy-mois-body"></tbody>
             </table>
@@ -951,7 +966,7 @@ let settings = {
           <div class="table-card">
             <table>
               <thead>
-                <tr><th>Jour</th><th style="text-align:right">CB moy.</th><th style="text-align:right">Espèce moy.</th><th style="text-align:right">Hors caisse moy.</th><th style="text-align:right">Total moy.</th><th style="text-align:right">Nb jours</th></tr>
+                <tr><th>Jour</th><th style="text-align:right">CB moy.</th><th style="text-align:right">Espèce moy.</th><th style="text-align:right">Hors caisse moy.</th><th style="text-align:right">Chèque moy.</th><th style="text-align:right">Total moy.</th><th style="text-align:right">Nb jours</th></tr>
               </thead>
               <tbody id="moy-jours-body"></tbody>
             </table>
@@ -1042,7 +1057,7 @@ function formatDateFr(dateStr) {
   return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
 }
 function fmtEuro(n) { return (n || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'; }
-function computeTotal(e) { return (parseFloat(e.cb)||0) + (parseFloat(e.espece)||0) + (parseFloat(e.horsCaisse)||0); }
+function computeTotal(e) { return (parseFloat(e.cb)||0) + (parseFloat(e.espece)||0) + (parseFloat(e.horsCaisse)||0) + (parseFloat(e.cheque)||0); }
 function todayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -1504,6 +1519,7 @@ function saveEntry() {
     cb: parseFloat(document.getElementById('cj-cb').value) || 0,
     espece: parseFloat(document.getElementById('cj-espece').value) || 0,
     horsCaisse: parseFloat(document.getElementById('cj-hors').value) || 0,
+    cheque: parseFloat(document.getElementById('cj-cheque').value) || 0,
     meteo: document.getElementById('cj-meteo-group')?.dataset.value || 'aucun',
     evenement: document.getElementById('cj-evenement-group')?.dataset.value || 'aucun',
     note: document.getElementById('cj-note').value.trim()
@@ -1534,6 +1550,7 @@ function editEntry(id) {
   document.getElementById('cj-cb').value = e.cb || '';
   document.getElementById('cj-espece').value = e.espece || '';
   document.getElementById('cj-hors').value = e.horsCaisse || '';
+  document.getElementById('cj-cheque').value = e.cheque || '';
   selectToggleOption('cj-meteo-group', e.meteo || 'aucun');
   selectToggleOption('cj-evenement-group', e.evenement || 'aucun');
   document.getElementById('cj-note').value = e.note || '';
@@ -1557,6 +1574,7 @@ function resetForm() {
   document.getElementById('cj-cb').value = '';
   document.getElementById('cj-espece').value = '';
   document.getElementById('cj-hors').value = '';
+  document.getElementById('cj-cheque').value = '';
   selectToggleOption('cj-meteo-group', 'aucun');
   selectToggleOption('cj-evenement-group', 'aucun');
   document.getElementById('cj-note').value = '';
@@ -1571,7 +1589,7 @@ function renderCaisse() {
   const tbody = document.getElementById('caisse-table-body');
 
   if (!viewEntries.length) {
-    tbody.innerHTML = `<tr><td colspan="8" class="empty-row">${allEntries.length ? 'Aucun résultat pour cette recherche' : 'Aucune saisie'}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="empty-row">${allEntries.length ? 'Aucun résultat pour cette recherche' : 'Aucune saisie'}</td></tr>`;
   } else {
     tbody.innerHTML = viewEntries.map(e => `
       <tr>
@@ -1580,6 +1598,7 @@ function renderCaisse() {
         <td style="text-align:right" class="private">${fmtEuro(e.cb)}</td>
         <td style="text-align:right" class="private">${fmtEuro(e.espece)}</td>
         <td style="text-align:right" class="private">${fmtEuro(e.horsCaisse)}</td>
+        <td style="text-align:right" class="private">${fmtEuro(e.cheque)}</td>
         <td style="text-align:right;font-weight:600;color:var(--green)" class="private">${fmtEuro(computeTotal(e))}</td>
         <td style="color:var(--text3)">${e.note || '—'}</td>
         <td style="white-space:nowrap">
@@ -1649,7 +1668,7 @@ function renderDashboard() {
 
   // Tableau répartition
   const rows = [
-    ['CB', 'cb'], ['Espèce', 'espece'], ['Hors caisse', 'horsCaisse']
+    ['CB', 'cb'], ['Espèce', 'espece'], ['Hors caisse', 'horsCaisse'], ['Chèque', 'cheque']
   ];
   document.getElementById('db-breakdown-body').innerHTML = rows.map(([label, key]) => `
     <tr>
@@ -1755,14 +1774,15 @@ function renderRepartitionChart(monthEntries) {
   if (repartitionChart) { repartitionChart.destroy(); repartitionChart = null; }
 
   const sum = (key) => monthEntries.reduce((s,e) => s + (parseFloat(e[key])||0), 0);
-  const values = [sum('cb'), sum('espece'), sum('horsCaisse')];
+  const values = [sum('cb'), sum('espece'), sum('horsCaisse'), sum('cheque')];
   const cs = getComputedStyle(document.documentElement);
   const cbColor = cs.getPropertyValue('--accent').trim() || '#8a8a8f';
   const especeColor = cs.getPropertyValue('--green').trim() || '#00a878';
   const horsCaisseColor = cs.getPropertyValue('--text3').trim() || '#9a9aa0';
+  const chequeColor = '#f59e0b';
   const isDark = (document.documentElement.getAttribute('data-theme') === 'dark') ||
     (!document.documentElement.hasAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  const baseColors = [cbColor, especeColor, horsCaisseColor];
+  const baseColors = [cbColor, especeColor, horsCaisseColor, chequeColor];
 
   // Dégradé radial par tranche (effet verre/brillant), calculé une fois le canvas monté
   function sliceGradient(chart, colorIndex) {
@@ -1780,7 +1800,7 @@ function renderRepartitionChart(monthEntries) {
   repartitionChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['CB', 'Espèce', 'Hors caisse'],
+      labels: ['CB', 'Espèce', 'Hors caisse', 'Chèque'],
       datasets: [{
         data: values,
         backgroundColor: (context) => sliceGradient(context.chart, context.dataIndex),
@@ -1951,8 +1971,8 @@ function renderMoyennes() {
 
   const n = entries.length;
   const sumKey = (key) => entries.reduce((s,e) => s + (parseFloat(e[key])||0), 0);
-  const totalCb = sumKey('cb'), totalEspece = sumKey('espece'), totalHc = sumKey('horsCaisse');
-  const totalGlobal = totalCb + totalEspece + totalHc;
+  const totalCb = sumKey('cb'), totalEspece = sumKey('espece'), totalHc = sumKey('horsCaisse'), totalCheque = sumKey('cheque');
+  const totalGlobal = totalCb + totalEspece + totalHc + totalCheque;
 
   document.getElementById('moy-cb').textContent = fmtEuro(totalCb);
   document.getElementById('moy-cb-sub').textContent = `Moyenne ${fmtEuro(totalCb / n)} / jour sur ${n} jour(s)`;
@@ -1960,22 +1980,27 @@ function renderMoyennes() {
   document.getElementById('moy-espece-sub').textContent = `Moyenne ${fmtEuro(totalEspece / n)} / jour sur ${n} jour(s)`;
   document.getElementById('moy-hc').textContent = fmtEuro(totalHc);
   document.getElementById('moy-hc-sub').textContent = `Moyenne ${fmtEuro(totalHc / n)} / jour sur ${n} jour(s)`;
+  document.getElementById('moy-cheque').textContent = fmtEuro(totalCheque);
+  document.getElementById('moy-cheque-sub').textContent = `Moyenne ${fmtEuro(totalCheque / n)} / jour sur ${n} jour(s)`;
   document.getElementById('moy-global').textContent = fmtEuro(totalGlobal);
   document.getElementById('moy-global-sub').textContent = `Moyenne ${fmtEuro(totalGlobal / n)} / jour sur ${n} jour(s)`;
 
-  // ── Répartition globale CB / Espèce / Hors caisse (%) ──
+  // ── Répartition globale CB / Espèce / Hors caisse / Chèque (%) ──
   const pctCb = totalGlobal ? (totalCb / totalGlobal) * 100 : 0;
   const pctEspece = totalGlobal ? (totalEspece / totalGlobal) * 100 : 0;
   const pctHc = totalGlobal ? (totalHc / totalGlobal) * 100 : 0;
+  const pctCheque = totalGlobal ? (totalCheque / totalGlobal) * 100 : 0;
   document.getElementById('moy-pct-cb').textContent = pctCb.toFixed(1) + '%';
   document.getElementById('moy-pct-espece').textContent = pctEspece.toFixed(1) + '%';
   document.getElementById('moy-pct-hc').textContent = pctHc.toFixed(1) + '%';
+  document.getElementById('moy-pct-cheque').textContent = pctCheque.toFixed(1) + '%';
   document.getElementById('moy-pct-bar-cb').style.width = pctCb + '%';
   document.getElementById('moy-pct-bar-espece').style.width = pctEspece + '%';
   document.getElementById('moy-pct-bar-hc').style.width = pctHc + '%';
+  document.getElementById('moy-pct-bar-cheque').style.width = pctCheque + '%';
 
   // ── Onglet Modes de paiement ──
-  const modes = [['CB', totalCb], ['Espèce', totalEspece], ['Hors caisse', totalHc]];
+  const modes = [['CB', totalCb], ['Espèce', totalEspece], ['Hors caisse', totalHc], ['Chèque', totalCheque]];
   document.getElementById('moy-modes-body').innerHTML = modes.map(([label, total]) => `
     <tr>
       <td>${label}</td>
@@ -1986,25 +2011,27 @@ function renderMoyennes() {
   `).join('');
 
   // ── Onglet Jours de semaine ──
-  const byJour = Array.from({ length: 7 }, () => ({ cb:0, espece:0, hc:0, total:0, count:0 }));
+  const byJour = Array.from({ length: 7 }, () => ({ cb:0, espece:0, hc:0, cheque:0, total:0, count:0 }));
   entries.forEach(e => {
     const dow = parseLocalDate(e.date).getDay();
     byJour[dow].cb += parseFloat(e.cb)||0;
     byJour[dow].espece += parseFloat(e.espece)||0;
     byJour[dow].hc += parseFloat(e.horsCaisse)||0;
+    byJour[dow].cheque += parseFloat(e.cheque)||0;
     byJour[dow].total += computeTotal(e);
     byJour[dow].count += 1;
   });
   const order = [1,2,3,4,5,6,0]; // Lundi → Dimanche
   document.getElementById('moy-jours-body').innerHTML = order.map(i => {
     const v = byJour[i];
-    if (!v.count) return `<tr><td>${JOURS_FR[i]}</td><td colspan="5" style="color:var(--text3)">Aucune donnée</td></tr>`;
+    if (!v.count) return `<tr><td>${JOURS_FR[i]}</td><td colspan="6" style="color:var(--text3)">Aucune donnée</td></tr>`;
     return `
       <tr>
         <td>${JOURS_FR[i]}</td>
         <td style="text-align:right" class="private">${fmtEuro(v.cb / v.count)}</td>
         <td style="text-align:right" class="private">${fmtEuro(v.espece / v.count)}</td>
         <td style="text-align:right" class="private">${fmtEuro(v.hc / v.count)}</td>
+        <td style="text-align:right" class="private">${fmtEuro(v.cheque / v.count)}</td>
         <td style="text-align:right;font-weight:600" class="private">${fmtEuro(v.total / v.count)}</td>
         <td style="text-align:right">${v.count}</td>
       </tr>
@@ -2050,11 +2077,12 @@ function renderMoyennes() {
   const byMonth = {};
   entries.forEach(e => {
     const key = e.date.slice(0,7); // YYYY-MM
-    if (!byMonth[key]) byMonth[key] = { total: 0, cb: 0, espece: 0, hc: 0, count: 0 };
+    if (!byMonth[key]) byMonth[key] = { total: 0, cb: 0, espece: 0, hc: 0, cheque: 0, count: 0 };
     byMonth[key].total += computeTotal(e);
     byMonth[key].cb += parseFloat(e.cb)||0;
     byMonth[key].espece += parseFloat(e.espece)||0;
     byMonth[key].hc += parseFloat(e.horsCaisse)||0;
+    byMonth[key].cheque += parseFloat(e.cheque)||0;
     byMonth[key].count += 1;
   });
   const monthKeys = Object.keys(byMonth).sort((a,b) => b.localeCompare(a));
@@ -2079,6 +2107,7 @@ function renderMoyennes() {
         <td style="text-align:right" class="private">${fmtEuro(m.cb)}</td>
         <td style="text-align:right" class="private">${fmtEuro(m.espece)}</td>
         <td style="text-align:right" class="private">${fmtEuro(m.hc)}</td>
+        <td style="text-align:right" class="private">${fmtEuro(m.cheque)}</td>
         <td style="text-align:right" class="private">${fmtEuro(m.total / m.count)}</td>
         <td style="text-align:right">${m.count}</td>
         <td style="text-align:right">${ecartHtml}</td>
