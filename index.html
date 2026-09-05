@@ -895,6 +895,29 @@ let settings = {
           </div>
         </div>
 
+        <div class="card" style="margin-bottom:1.5rem">
+          <div class="chart-card-title" style="margin-bottom:1rem">Répartition globale des encaissements</div>
+          <div style="display:flex;gap:1.5rem;flex-wrap:wrap">
+            <div style="flex:1;min-width:110px">
+              <div class="metric-label">CB</div>
+              <div class="metric-value" id="moy-pct-cb" style="font-size:26px">0%</div>
+            </div>
+            <div style="flex:1;min-width:110px">
+              <div class="metric-label">Espèce</div>
+              <div class="metric-value green" id="moy-pct-espece" style="font-size:26px">0%</div>
+            </div>
+            <div style="flex:1;min-width:110px">
+              <div class="metric-label">Hors caisse</div>
+              <div class="metric-value" id="moy-pct-hc" style="font-size:26px;color:var(--text3)">0%</div>
+            </div>
+          </div>
+          <div style="display:flex;height:10px;border-radius:6px;overflow:hidden;margin-top:1.25rem;background:var(--surface2)">
+            <div id="moy-pct-bar-cb" style="background:var(--accent);transition:width .3s"></div>
+            <div id="moy-pct-bar-espece" style="background:var(--green);transition:width .3s"></div>
+            <div id="moy-pct-bar-hc" style="background:var(--text3);transition:width .3s"></div>
+          </div>
+        </div>
+
         <div class="tabs">
           <button class="tab-btn active" onclick="switchMoyTab('mois')">Mois</button>
           <button class="tab-btn" onclick="switchMoyTab('modes')">Modes de paiement</button>
@@ -1939,6 +1962,17 @@ function renderMoyennes() {
   document.getElementById('moy-hc-sub').textContent = `Moyenne ${fmtEuro(totalHc / n)} / jour sur ${n} jour(s)`;
   document.getElementById('moy-global').textContent = fmtEuro(totalGlobal);
   document.getElementById('moy-global-sub').textContent = `Moyenne ${fmtEuro(totalGlobal / n)} / jour sur ${n} jour(s)`;
+
+  // ── Répartition globale CB / Espèce / Hors caisse (%) ──
+  const pctCb = totalGlobal ? (totalCb / totalGlobal) * 100 : 0;
+  const pctEspece = totalGlobal ? (totalEspece / totalGlobal) * 100 : 0;
+  const pctHc = totalGlobal ? (totalHc / totalGlobal) * 100 : 0;
+  document.getElementById('moy-pct-cb').textContent = pctCb.toFixed(1) + '%';
+  document.getElementById('moy-pct-espece').textContent = pctEspece.toFixed(1) + '%';
+  document.getElementById('moy-pct-hc').textContent = pctHc.toFixed(1) + '%';
+  document.getElementById('moy-pct-bar-cb').style.width = pctCb + '%';
+  document.getElementById('moy-pct-bar-espece').style.width = pctEspece + '%';
+  document.getElementById('moy-pct-bar-hc').style.width = pctHc + '%';
 
   // ── Onglet Modes de paiement ──
   const modes = [['CB', totalCb], ['Espèce', totalEspece], ['Hors caisse', totalHc]];
