@@ -1021,6 +1021,10 @@ let settings = {
             <span>Réinitialiser les données</span>
             <button class="btn btn-danger" onclick="confirmReset()">🗑 Réinitialiser</button>
           </div>
+          <div class="settings-row">
+            <span>Compléter les commentaires "Marché" sur l'historique</span>
+            <button class="btn btn-secondary" onclick="backfillMarketNotes()">📝 Compléter</button>
+          </div>
         </div>
 
         <div class="settings-section">
@@ -1508,6 +1512,30 @@ function updateFormJour() {
     if (!currentValue || isPreviousAutoNote) {
       noteEl.value = autoNote;
     }
+  }
+}
+
+// Complète le commentaire "Marché" sur les anciennes saisies dont le commentaire est vide
+// (ne touche jamais une saisie qui a déjà un commentaire personnalisé)
+function backfillMarketNotes() {
+  let count = 0;
+  appData.entries.forEach(e => {
+    const currentValue = (e.note || '').trim();
+    if (!currentValue) {
+      const dow = parseLocalDate(e.date).getDay();
+      const autoNote = MARKET_NOTES[dow];
+      if (autoNote) {
+        e.note = autoNote;
+        count++;
+      }
+    }
+  });
+  if (count > 0) {
+    debouncedSave();
+    renderCaisse();
+    showToast(`${count} commentaire(s) "Marché" ajouté(s)`);
+  } else {
+    showToast('Aucun commentaire vide à compléter');
   }
 }
 
