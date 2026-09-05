@@ -672,12 +672,12 @@ let settings = {
           </div>
           <div class="form-group" style="grid-column: 1 / -1">
             <label>Vendeur</label>
-            <div class="btn-toggle-group" id="cj-vendeur-group" data-value="aucun">
+            <div class="btn-toggle-group" id="cj-vendeur-group" data-value="autre">
               <button type="button" class="btn-toggle" data-val="julien" onclick="selectToggleOption('cj-vendeur-group','julien')">Julien</button>
               <button type="button" class="btn-toggle" data-val="sandra" onclick="selectToggleOption('cj-vendeur-group','sandra')">Sandra</button>
               <button type="button" class="btn-toggle" data-val="remy" onclick="selectToggleOption('cj-vendeur-group','remy')">Rémy</button>
               <button type="button" class="btn-toggle" data-val="mariam" onclick="selectToggleOption('cj-vendeur-group','mariam')">Mariam</button>
-              <button type="button" class="btn-toggle active" data-val="aucun" onclick="selectToggleOption('cj-vendeur-group','aucun')">— Aucun</button>
+              <button type="button" class="btn-toggle active" data-val="autre" onclick="selectToggleOption('cj-vendeur-group','autre')">— Autre</button>
             </div>
           </div>
           <div class="form-group" style="grid-column: 1 / -1">
@@ -1574,7 +1574,7 @@ function saveEntry() {
     cheque: parseFloat(document.getElementById('cj-cheque').value) || 0,
     meteo: document.getElementById('cj-meteo-group')?.dataset.value || 'aucun',
     evenement: document.getElementById('cj-evenement-group')?.dataset.value || 'aucun',
-    vendeur: document.getElementById('cj-vendeur-group')?.dataset.value || 'aucun',
+    vendeur: document.getElementById('cj-vendeur-group')?.dataset.value || 'autre',
     note: document.getElementById('cj-note').value.trim()
   };
 
@@ -1606,7 +1606,7 @@ function editEntry(id) {
   document.getElementById('cj-cheque').value = e.cheque || '';
   selectToggleOption('cj-meteo-group', e.meteo || 'aucun');
   selectToggleOption('cj-evenement-group', e.evenement || 'aucun');
-  selectToggleOption('cj-vendeur-group', e.vendeur || 'aucun');
+  selectToggleOption('cj-vendeur-group', (!e.vendeur || e.vendeur === 'aucun') ? 'autre' : e.vendeur);
   document.getElementById('cj-note').value = e.note || '';
   document.getElementById('cj-form-title').textContent = 'Modifier la saisie';
   document.getElementById('cj-cancel-btn').style.display = 'inline-flex';
@@ -1631,7 +1631,7 @@ function resetForm() {
   document.getElementById('cj-cheque').value = '';
   selectToggleOption('cj-meteo-group', 'aucun');
   selectToggleOption('cj-evenement-group', 'aucun');
-  selectToggleOption('cj-vendeur-group', 'aucun');
+  selectToggleOption('cj-vendeur-group', 'autre');
   document.getElementById('cj-note').value = '';
   document.getElementById('cj-form-title').textContent = 'Nouvelle saisie';
   document.getElementById('cj-cancel-btn').style.display = 'none';
