@@ -1492,9 +1492,23 @@ function renderAll() { onPageSwitch(currentPage); }
 // ────────────────────────────────────────────────────────────────
 let editingId = null;
 
+const MARKET_NOTES = { 3: 'Marché Sarlat', 4: 'Marché Domme', 5: 'Marché Roc Gageac', 6: 'Marché Sarlat' }; // 0=dim,1=lun,2=mar,3=mer,4=jeu,5=ven,6=sam
+
 function updateFormJour() {
   const date = document.getElementById('cj-date').value;
   document.getElementById('cj-form-jour').textContent = date ? jourSemaineName(date) : '—';
+
+  // Auto-remplissage du commentaire "Marché" selon le jour de la semaine (nouvelle saisie uniquement)
+  if (date && !editingId) {
+    const noteEl = document.getElementById('cj-note');
+    const dow = parseLocalDate(date).getDay();
+    const autoNote = MARKET_NOTES[dow] || '';
+    const currentValue = noteEl.value.trim();
+    const isPreviousAutoNote = Object.values(MARKET_NOTES).includes(currentValue);
+    if (!currentValue || isPreviousAutoNote) {
+      noteEl.value = autoNote;
+    }
+  }
 }
 
 // ────────────────────────────────────────────────────────────────
