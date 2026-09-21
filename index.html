@@ -435,8 +435,33 @@ canvas { display: block; }
   box-shadow: var(--card-shadow);
 }
 
+#zoom-ctrl {
+  display: none;
+  position: fixed; z-index: 41;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  right: 14px;
+  align-items: center; gap: 2px;
+  background: linear-gradient(155deg, var(--surf-top), var(--surf-bot));
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  padding: 4px;
+}
+#zoom-ctrl button {
+  width: 34px; height: 34px;
+  border: none; background: transparent; color: var(--text);
+  font-size: 18px; font-weight: 600; cursor: pointer;
+  border-radius: 8px; font-family: 'DM Sans', sans-serif;
+}
+#zoom-ctrl button:active { background: var(--surface2); }
+#zoom-ctrl .zoom-pct {
+  font-size: 11px; color: var(--text3); width: 34px; text-align: center;
+}
+
 @media (max-width: 760px) {
   .layout, .layout.sb-collapsed { grid-template-columns: 1fr; }
+  #zoom-ctrl { display: flex; }
 
   .sidebar {
     position: fixed; top: 0; left: 0; z-index: 40;
@@ -527,6 +552,11 @@ let settings = {
      STRUCTURE LAYOUT
      ═══════════════════════════════════════════════════════════════ -->
 <button id="mobile-menu-btn" onclick="openMobileSidebar()" aria-label="Menu" title="Menu">☰</button>
+<div id="zoom-ctrl" aria-label="Zoom de l'affichage">
+  <button type="button" onclick="uiZoomOut()" aria-label="Dézoomer">−</button>
+  <span class="zoom-pct" id="zoom-pct">100%</span>
+  <button type="button" onclick="uiZoomIn()" aria-label="Zoomer">+</button>
+</div>
 <div class="layout" id="layout">
 
   <div id="sb-backdrop" onclick="closeMobileSidebar()"></div>
@@ -1181,6 +1211,21 @@ function toggleSidebar() {
 
 function openMobileSidebar()  { document.getElementById('layout').classList.add('sb-mobile-open'); }
 function closeMobileSidebar() { document.getElementById('layout').classList.remove('sb-mobile-open'); }
+
+// ────────────────────────────────────────────────────────────────
+// ZOOM AFFICHAGE (mobile) — le pinch-to-zoom natif n'est pas fiable
+// en mode "standalone" sur iOS, donc on propose un zoom manuel.
+// ────────────────────────────────────────────────────────────────
+let uiZoomLevel = parseFloat(localStorage.getItem('cd_ui_zoom')) || 1;
+function applyUiZoom() {
+  const mainEl = document.querySelector('.main');
+  if (mainEl) mainEl.style.zoom = uiZoomLevel;
+  const pctEl = document.getElementById('zoom-pct');
+  if (pctEl) pctEl.textContent = Math.round(uiZoomLevel * 100) + '%';
+  localStorage.setItem('cd_ui_zoom', String(uiZoomLevel));
+}
+function uiZoomIn()  { uiZoomLevel = Math.min(1.8, +(uiZoomLevel + 0.1).toFixed(2)); applyUiZoom(); }
+function uiZoomOut() { uiZoomLevel = Math.max(0.7, +(uiZoomLevel - 0.1).toFixed(2)); applyUiZoom(); }
 
 // ────────────────────────────────────────────────────────────────
 // THÈME
@@ -2276,6 +2321,8 @@ function confirmReset() {
   }
 
   applyTheme(settings.theme || 'auto');
+
+  applyUiZoom();
 
   applyPrivacyUI();
 
