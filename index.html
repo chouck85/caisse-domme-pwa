@@ -764,9 +764,9 @@ let settings = {
 
       <div class="metrics-row">
         <div class="metric-card">
-          <div class="metric-label">Recette du jour</div>
-          <div class="metric-value green private" id="db-jour">0 €</div>
-          <div class="metric-sub" id="db-jour-sub">—</div>
+          <div class="metric-label">Performance globale</div>
+          <div class="metric-value green private" id="db-global">0 €</div>
+          <div class="metric-sub" id="db-global-sub">—</div>
         </div>
         <div class="metric-card">
           <div class="metric-label">Recette de la semaine</div>
@@ -1787,8 +1787,8 @@ function renderDashboard() {
 
   const sum = (arr, key) => arr.reduce((s,e) => s + (key ? (parseFloat(e[key])||0) : computeTotal(e)), 0);
 
-  document.getElementById('db-jour').textContent = fmtEuro(todayEntry ? computeTotal(todayEntry) : 0);
-  document.getElementById('db-jour-sub').textContent = todayEntry ? jourSemaineName(todayS) : "Aucune saisie aujourd'hui";
+  document.getElementById('db-global').textContent = fmtEuro(sum(entries));
+  document.getElementById('db-global-sub').textContent = `${entries.length} jour(s) saisis au total`;
   document.getElementById('db-semaine').textContent = fmtEuro(sum(weekEntries));
   document.getElementById('db-semaine-sub').textContent = `${weekEntries.length} jour(s) saisis`;
   document.getElementById('db-mois').textContent = fmtEuro(sum(monthEntries));
